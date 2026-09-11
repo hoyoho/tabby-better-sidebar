@@ -633,31 +633,31 @@ export function countPayload (group: SharedGroup): { folders: number, profiles: 
 export function describePurge (report: PurgeReport): TranslatableMessage[] {
     const parts: TranslatableMessage[] = []
     if (report.passwords) {
-        parts.push({ message: '{count, plural, one {# password} other {# passwords}}', params: { count: report.passwords } })
+        parts.push({ message: '{count, plural, =1 {# password} other {# passwords}}', params: { count: report.passwords } })
     }
     if (report.scripts) {
-        parts.push({ message: '{count, plural, one {# login script} other {# login scripts}}', params: { count: report.scripts } })
+        parts.push({ message: '{count, plural, =1 {# login script} other {# login scripts}}', params: { count: report.scripts } })
     }
     if (report.vaultKeys) {
-        parts.push({ message: '{count, plural, one {# vault key} other {# vault keys}}', params: { count: report.vaultKeys } })
+        parts.push({ message: '{count, plural, =1 {# vault key} other {# vault keys}}', params: { count: report.vaultKeys } })
     }
     if (report.privateKeys) {
-        parts.push({ message: '{count, plural, one {# key path} other {# key paths}}', params: { count: report.privateKeys } })
+        parts.push({ message: '{count, plural, =1 {# key path} other {# key paths}}', params: { count: report.privateKeys } })
     }
     if (report.credentials) {
-        parts.push({ message: '{count, plural, one {# credential} other {# credentials and routes}}', params: { count: report.credentials } })
+        parts.push({ message: '{count, plural, =1 {# credential} other {# credentials and routes}}', params: { count: report.credentials } })
     }
     if (report.suspicious) {
-        parts.push({ message: '{count, plural, one {# sensitive field} other {# sensitive fields}}', params: { count: report.suspicious } })
+        parts.push({ message: '{count, plural, =1 {# sensitive field} other {# sensitive fields}}', params: { count: report.suspicious } })
     }
     if (report.commands) {
-        parts.push({ message: '{count, plural, one {# proxy command} other {# proxy commands}}', params: { count: report.commands } })
+        parts.push({ message: '{count, plural, =1 {# proxy command} other {# proxy commands}}', params: { count: report.commands } })
     }
     if (report.unknownOptions) {
-        parts.push({ message: '{count, plural, one {# unrecognised option} other {# unrecognised options}}', params: { count: report.unknownOptions } })
+        parts.push({ message: '{count, plural, =1 {# unrecognised option} other {# unrecognised options}}', params: { count: report.unknownOptions } })
     }
     if (report.rejectedTypes) {
-        parts.push({ message: '{count, plural, one {# profile of an unsupported type} other {# profiles of an unsupported type}}', params: { count: report.rejectedTypes } })
+        parts.push({ message: '{count, plural, =1 {# profile of an unsupported type} other {# profiles of an unsupported type}}', params: { count: report.rejectedTypes } })
     }
     return parts
 }

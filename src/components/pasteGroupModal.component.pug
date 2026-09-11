@@ -7,7 +7,7 @@
     //- [innerHTML] — see the `collisionSentence` getter for why the value is
     //- escaped there rather than trusted straight from the input.
     p([innerHTML]='collisionSentence')
-    p.paste-group-count {{ 'To paste: {folders, plural, one {# folder} other {# folders}}, {profiles, plural, one {# profile} other {# profiles}}.' | translate:{ folders: folders, profiles: profiles } }}
+    p.paste-group-count {{ 'To paste: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}.' | translate:{ folders: folders, profiles: profiles } }}
     //- The purge is stated here and not only in the notice afterwards: it says
     //- what will have to be re-entered, which is part of deciding whether to
     //- merge into a folder that already works.

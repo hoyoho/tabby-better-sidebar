@@ -2,9 +2,10 @@ import { NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { DragDropModule } from '@angular/cdk/drag-drop'
-import TabbyCoreModule, { ConfigProvider, HotkeyProvider } from 'tabby-core'
+import TabbyCoreModule, { ConfigProvider, HotkeyProvider, SidebarContribution } from 'tabby-core'
 import { SettingsTabProvider } from 'tabby-settings'
 
+import { SidebarPlusContribution } from './sidebarContribution'
 import { SidebarPlusTreeComponent } from './components/sidebarTree.component'
 import { SidebarPlusSftpComponent } from './components/sftpPanel.component'
 import { SidebarPlusSftpBrowserComponent } from './components/sftpBrowser.component'
@@ -48,6 +49,7 @@ const SIDEBAR_PANEL_CONTRIBUTION: BetterPanelContribution = {
         { provide: ConfigProvider, useClass: SidebarPlusConfigProvider, multi: true },
         { provide: SettingsTabProvider, useClass: SidebarPlusSettingsTabProvider, multi: true },
         { provide: HotkeyProvider, useClass: SidebarPlusHotkeyProvider, multi: true },
+        { provide: SidebarContribution, useClass: SidebarPlusContribution, multi: true },
         { provide: SIDEBAR_PANEL_TOKEN, useValue: SIDEBAR_PANEL_CONTRIBUTION },
     ],
     declarations: [

@@ -367,23 +367,23 @@ export class SidebarPlusTransfersService {
         this.summary = active > 0
             ? this.i18n.t('{count} running', { count: active })
             : failed > 0
-                ? this.i18n.t('{count, plural, one {# interrupted} other {# interrupted}}', { count: failed })
+                ? this.i18n.t('{count, plural, =1 {# interrupted} other {# interrupted}}', { count: failed })
                 : String(this.entries.length)
         const parts: string[] = []
         if (active > 0) {
             parts.push(this.i18n.t('{count} running', { count: active }))
         }
         if (done > 0) {
-            parts.push(this.i18n.t('{count, plural, one {# finished} other {# finished}}', { count: done }))
+            parts.push(this.i18n.t('{count, plural, =1 {# finished} other {# finished}}', { count: done }))
         }
         if (cancelled > 0) {
-            parts.push(this.i18n.t('{count, plural, one {# cancelled} other {# cancelled}}', { count: cancelled }))
+            parts.push(this.i18n.t('{count, plural, =1 {# cancelled} other {# cancelled}}', { count: cancelled }))
         }
         if (failed - unsound > 0) {
-            parts.push(this.i18n.t('{count, plural, one {# interrupted} other {# interrupted}}', { count: failed - unsound }))
+            parts.push(this.i18n.t('{count, plural, =1 {# interrupted} other {# interrupted}}', { count: failed - unsound }))
         }
         if (unsound > 0) {
-            parts.push(this.i18n.t('{count, plural, one {# incomplete at destination} other {# incomplete at destination}}', { count: unsound }))
+            parts.push(this.i18n.t('{count, plural, =1 {# incomplete at destination} other {# incomplete at destination}}', { count: unsound }))
         }
         this.summaryTitle = parts.join(', ')
     }

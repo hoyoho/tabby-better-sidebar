@@ -1,9 +1,30 @@
 // The tabby-core typings published on npm lag behind the Tabby desktop app's
 // actual runtime API (observed: npm "nightly" tag vs. locally installed 1.0.235).
 // These fields/methods exist at runtime; this augmentation just restores their types.
+import { Type } from '@angular/core'
 import 'tabby-core'
 
 declare module 'tabby-core' {
+    // Sidebar extension point added to the app after the npm typings were cut.
+    // The host renders a contribution registered under this token; `kind:
+    // 'owner'` replaces the whole sidebar.
+    export type SidebarContributionKind = 'owner' | 'panel' | 'widget'
+    export interface SidebarContext {
+        activeTab?: unknown
+    }
+    export abstract class SidebarContribution {
+        abstract id: string
+        title: string
+        icon: string
+        order: number
+        kind: SidebarContributionKind
+        minWidth: number
+        defaultWidth: number
+        maxWidth: number
+        isAvailable (ctx: SidebarContext): boolean
+        abstract getComponentType (): Type<unknown>
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface ProfileGroup {
         parentGroupId?: string
@@ -15,6 +36,13 @@ declare module 'tabby-core' {
         buildGroupTree<T extends ProfileGroup & { children: any }> (
             groups: PartialProfileGroup<T>[]
         ): PartialProfileGroup<T>[]
+    }
+
+    // Provider hook added with the sidebar work: copies provider-side state
+    // (the SSH password in the vault) from a profile to its duplicate.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface ProfileProvider<P> {
+        duplicateProfile (source: P, target: P): void|Promise<void>
     }
 
     // Both take a path the npm typings know nothing about, and both skip their

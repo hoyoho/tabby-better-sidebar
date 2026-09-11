@@ -31,14 +31,14 @@
     //- `flex-grow-1` in this flex column, so anything following it gets pushed
     //- to the very bottom of the sidebar in SFTP mode. The section is meant to
     //- sit at the top in both tabs.
-    .active-sessions(*ngIf='showActiveSessions && activeSessions.length')
+    .active-sessions(*ngIf='showActiveSessions && visibleActiveSessions.length')
         a.active-sessions-header((click)='toggleActiveSessions()', href='#')
             .fa.fa-fw.fas.me-1(
                 [class.fa-chevron-down]='!activeSessionsCollapsed',
                 [class.fa-chevron-right]='activeSessionsCollapsed'
             )
             span.me-auto {{ 'Active sessions' | translate }}
-            span.active-sessions-count {{ activeSessions.length }}
+            span.active-sessions-count {{ visibleActiveSessions.length }}
         //- The list scrolls past four rows (see the SCSS): the header has to
         //- stay put, so the cap goes on this inner wrapper, not on the section.
         .active-sessions-list(*ngIf='!activeSessionsCollapsed')
@@ -47,7 +47,7 @@
             //- invalid HTML that the parser silently un-nests. Same shape as
             //- the profile rows' own .actions block below.
             a.active-session(
-                *ngFor='let session of activeSessions',
+                *ngFor='let session of visibleActiveSessions; trackBy: trackSession',
                 [class.focused]='session.focused',
                 (click)='focusSession(session, $event)',
                 (mouseenter)='onSessionHover(session, true)',
@@ -271,7 +271,7 @@
             span.me-auto {{ selectionNotice }}
         ng-container(*ngIf='!selectionNotice')
             .d-flex.align-items-center
-                span.me-auto {{ '{count, plural, one {# profile selected} other {# profiles selected}}' | translate:{ count: selectedProfileIds.size } }}
+                span.me-auto {{ '{count, plural, =1 {# profile selected} other {# profiles selected}}' | translate:{ count: selectedProfileIds.size } }}
                 .selection-clear((click)='clearSelection()', [title]="'Clear the selection' | translate")
                     .fa.fa-fw.fas.fa-xmark
             .selection-hint {{ 'Drag the selection, or right-click the destination folder' | translate }}
@@ -895,6 +895,39 @@
     .d-flex.gap-2
         button.btn.btn-sm.btn-danger((click)='deleteWorkspace()') {{ 'Delete' | translate }}
         button.btn.btn-sm.btn-secondary((click)='closeContextMenu()') {{ 'Cancel' | translate }}
+
+//- Bottom connection-info panel: the focused SSH session's name and
+//- user@host:port, like Xshell's status strip. Sits above the plugin footer.
+//- Session indicator: the focused SSH session, hidden as soon as focus leaves
+//- an SSH tab. Suppressed while a profile preview is on screen.
+.sidebar-plus-connection(*ngIf='connectionInfo && !previewInfo')
+    span.conn-dot(
+        [class.connected]='connectionInfo.status === "connected"',
+        [class.error]='connectionInfo.status === "error"'
+    )
+    .conn-text
+        span.conn-name.no-wrap {{ connectionInfo.name }}
+        span.conn-addr.no-wrap {{ connectionInfo.user }}@{{ connectionInfo.host }}:{{ connectionInfo.port }}
+
+//- Profile preview: the sidebar profile last clicked, independent of the
+//- session indicator above.
+.sidebar-plus-preview(*ngIf='previewInfo')
+    table.preview-table
+        tr
+            td.label {{ 'Name' | translate }}
+            td.value {{ previewInfo.name }}
+        tr
+            td.label {{ 'Protocol' | translate }}
+            td.value {{ previewInfo.protocol }}
+        tr(*ngIf='previewInfo.host')
+            td.label {{ 'Host' | translate }}
+            td.value {{ previewInfo.host }}
+        tr(*ngIf='previewInfo.port')
+            td.label {{ 'Port' | translate }}
+            td.value {{ previewInfo.port }}
+        tr(*ngIf='previewInfo.user')
+            td.label {{ 'Username' | translate }}
+            td.value {{ previewInfo.user }}
 
 //- Footer bar at the bottom of the sidebar, in both views. Plugin signature +
 //- version on the left, settings gear on the right. Deliberately outside the

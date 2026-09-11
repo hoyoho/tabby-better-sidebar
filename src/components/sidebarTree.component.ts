@@ -250,6 +250,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     panelMinWidth = 200
     panelMaxWidth = 600
+    // Released below this width the sidebar closes entirely (matching Tabby's
+    // own sidebar); it can be re-opened from the settings or the hotkey.
+    panelCollapseThreshold = 30
     panelInternalWidth = parseInt(window.localStorage.sidebarPlusTreeWidth ?? '300')
     panelStartWidth = this.panelInternalWidth
     panelIsResizing = false
@@ -267,6 +270,13 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     activeSessions: ActiveSession[] = []
     /** tab → when it was first seen live, the only record of a session's age there is (see sessionUptime()). */
     private sessionOpenedAt = new Map<SSHTabComponent, number>()
+    /**
+     * Clock captured once per refresh pass. Template bindings derive uptime
+     * from this instead of calling `Date.now()` themselves: a value read at
+     * binding time can change between Angular's check and its verification
+     * pass and trip NG0100 when the two straddle a second boundary.
+     */
+    private now = Date.now()
     /** The row under the pointer and the tooltip text held still for it — see sessionTooltip(). */
     private hoveredSessionTab: SSHTabComponent|null = null
     private hoveredSessionTooltip = ''
@@ -357,7 +367,10 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     activeTunnelsCollapsed = window.localStorage.sidebarPlusActiveTunnelsCollapsed === 'true'
 
     profileStatuses = new Map<string, ProfileConnectionStatus>()
+    /** Profile clicked in the tree, previewed in the bottom panel. */
+    previewProfile: PartialProfile<Profile>|null = null
     private statusSubscription: Subscription|null = null
+    private previewClearSubscription: Subscription|null = null
     private configSubscription: Subscription|null = null
     /** Focus moves *between panes* of the active split emit nothing on AppService — see watchSplitFocus(). */
     private splitFocusSubscription: Subscription|null = null
@@ -585,10 +598,16 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             this.refreshActiveSessions()
             this.watchSplitFocus()
         })
+        // A session gaining focus takes the bottom panel back from a profile
+        // preview: the two never show at the same time.
+        this.previewClearSubscription = this.app.activeTabChange$.subscribe(() => {
+            this.previewProfile = null
+        })
     }
 
     ngOnDestroy (): void {
         this.statusSubscription?.unsubscribe()
+        this.previewClearSubscription?.unsubscribe()
         this.configSubscription?.unsubscribe()
         this.hotkeySubscription?.unsubscribe()
         this.splitFocusSubscription?.unsubscribe()
@@ -1199,6 +1218,36 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         return this.workspaces.find(w => w.id === this.activeWorkspaceId) ?? null
     }
 
+    /**
+     * The tabs belonging to the current host workspace. A top-level split
+     * container contributes every pane it holds; a plain top-level tab is a
+     * workspace of its own.
+     */
+    private activeWorkspaceTabs (): Set<BaseTabComponent> {
+        const active = this.app.activeTab
+        if (!active) {
+            return new Set()
+        }
+        const tabs = active instanceof SplitTabComponent ? active.getAllTabs() : [active]
+        return new Set(tabs as BaseTabComponent[])
+    }
+
+    /**
+     * Active sessions restricted to the current host workspace, so switching
+     * to another workspace switches the list. This follows Tabby's own
+     * workspace (the split container / top-level tab), not the plugin's
+     * profile-filter workspace.
+     */
+    get visibleActiveSessions (): ActiveSession[] {
+        const tabs = this.activeWorkspaceTabs()
+        return this.activeSessions.filter(session => tabs.has(session.tab))
+    }
+
+    /** Keeps session rows attached to their tab even when the filtered array is rebuilt. */
+    trackSession (_: number, session: ActiveSession): SSHTabComponent {
+        return session.tab
+    }
+
     selectWorkspace (id: string): void {
         this.activeWorkspaceId = id
         window.localStorage.sidebarPlusActiveWorkspace = id
@@ -1770,13 +1819,28 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }
         if (!this.panelIsResizing) { return }
         const delta = event.clientX - this.panelStartX
-        const width = Math.min(Math.max(this.panelMinWidth, this.panelStartWidth + delta), this.panelMaxWidth)
+        // Tracks the mouse all the way to 0 so the handle can reach the
+        // collapse threshold; the min/close decision is deferred to mouseup so
+        // the handle never teleports under the cursor.
+        const width = Math.max(0, Math.min(this.panelMaxWidth, this.panelStartWidth + delta))
         this.panelWidth = width
-        window.localStorage.sidebarPlusTreeWidth = width.toString()
     }
 
     @HostListener('document:mouseup')
     stopResize (): boolean {
+        if (this.panelIsResizing) {
+            if (this.panelWidth < this.panelCollapseThreshold) {
+                // Dragged shut: hide the sidebar. `showProfileTree` gates the
+                // whole sidebar area, this owner contribution included. Keep a
+                // usable width so re-opening does not bring back a 0px panel.
+                this.panelWidth = this.panelMinWidth
+                this.config.store.showProfileTree = false
+                this.config.save()
+            } else {
+                this.panelWidth = Math.min(this.panelMaxWidth, Math.max(this.panelMinWidth, this.panelWidth))
+            }
+            window.localStorage.sidebarPlusTreeWidth = this.panelWidth.toString()
+        }
         this.panelIsResizing = false
         return true
     }
@@ -2175,7 +2239,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // the tab leaves the list — see sessionUptime() for what that implies.
         // Kept out of the ActiveSession rows for the same reason as the
         // latency: a value that changes every tick would fail sameSessions().
-        const now = Date.now()
+        const now = this.now = Date.now()
         const live = new Set(sessions.map(session => session.tab))
         for (const tab of this.sessionOpenedAt.keys()) {
             if (!live.has(tab)) {
@@ -2370,7 +2434,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     /** Milliseconds since the tab was first seen live, or null while it has not been stamped yet. */
     private uptimeMs (session: ActiveSession): number|null {
         const startedAt = this.sessionOpenedAt.get(session.tab)
-        return startedAt === undefined ? null : Date.now() - startedAt
+        return startedAt === undefined ? null : this.now - startedAt
     }
 
     /**
@@ -2436,6 +2500,52 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private resolveFocusedTab (): BaseTabComponent|null {
         const active = this.app.activeTab
         return active instanceof SplitTabComponent ? active.getFocusedTab() : active
+    }
+
+    /**
+     * Connection details of the focused SSH session, for the bottom panel:
+     * profile name plus user@host:port and a live/disconnected state. Null when
+     * the focused tab is not an SSH session.
+     */
+    get connectionInfo (): { name: string, host: string, user: string, port: string, protocol: string, status: ProfileConnectionStatus|null }|null {
+        const tab = this.resolveFocusedTab()
+        if (!tab || !isSSHTab(tab)) {
+            return null
+        }
+        const ssh = tab as unknown as SSHTabComponent
+        const profile = (ssh as unknown as {
+            profile?: { id?: string, name?: string, type?: string, options?: { host?: string, user?: string, port?: number } }
+        }).profile
+        const options = profile?.options ?? {}
+        return {
+            name: profile?.name || ssh.title || '',
+            host: options.host ?? '',
+            user: options.user ?? '',
+            port: options.port != null ? String(options.port) : '22',
+            protocol: profile?.type ?? '',
+            status: profile?.id ? (this.profileStatuses.get(profile.id) ?? null) : null,
+        }
+    }
+
+    /** Details of the profile clicked in the tree, for the bottom panel. */
+    get previewInfo (): { name: string, host: string, user: string, port: string, protocol: string, status: ProfileConnectionStatus|null }|null {
+        const profile = this.previewProfile
+        if (!profile) {
+            return null
+        }
+        const options = (profile as unknown as { options?: { host?: string, user?: string, port?: number } }).options ?? {}
+        // Show the provider's translated name ("本地终端", "SSH"…) rather than
+        // the raw type id.
+        const provider = this.profileProviders.find(p => p.id === profile.type)
+        return {
+            name: profile.name ?? '',
+            host: options.host ?? '',
+            user: options.user ?? '',
+            // No SSH-style default: a profile without a port has no port row.
+            port: options.port != null ? String(options.port) : '',
+            protocol: provider ? this.i18n.t(provider.name) : (profile.type ?? ''),
+            status: profile.id ? (this.profileStatuses.get(profile.id) ?? null) : null,
+        }
     }
 
     /**
@@ -2861,6 +2971,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (!profile.id) {
             return
         }
+        this.previewProfile = profile
         if (event.shiftKey) {
             this.extendSelectionTo(profile, group)
         } else if (event.ctrlKey || event.metaKey) {
@@ -4207,8 +4318,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      *
      * `weight` is kept on purpose: same rank as the original, and `sort()`
      * being stable, the copy lands right underneath it rather than at the end
-     * of the folder. `id` is left alone — `newProfile()` overwrites it with a
-     * fresh uuid derived from the new name.
+     * of the folder. `id` is deleted so `newProfile()` mints a fresh one — it
+     * only generates an id when the incoming profile has none, and rejects a
+     * collision otherwise.
      */
     async duplicateProfile (profile: PartialProfile<Profile>): Promise<void> {
         this.closeContextMenu()
@@ -4218,8 +4330,18 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }
         delete copy.isTemplate
         delete copy.isBuiltin
+        // The clone must not keep the source id: `ProfilesService.newProfile()`
+        // only mints a fresh one when the incoming profile has none, and
+        // otherwise rejects the insert as a duplicate id.
+        delete copy.id
         copy.name = this.copyNameFor(profile)
         await this.profilesService.newProfile(copy)
+        // Provider-side state (the SSH password lives in the vault, keyed by
+        // profile id) is not part of the profile object, so copying it alone
+        // would leave the clone reading "password not set". Let the provider
+        // carry that state onto the copy.
+        const provider = this.profilesService.providerForProfile(copy) ?? this.profilesService.providerForProfile(profile)
+        await provider?.duplicateProfile?.(profile as any, copy as any)
         // The memo travels with the copy. Nothing carries it on its own — a
         // note is keyed by profile id, and `newProfile()` has just minted a new
         // one — yet duplicating a server to make a variant of it and losing
@@ -4368,7 +4490,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         const purged = this.describePurgeText(payload.removed)
         this.notices.notice(
             this.i18n.t(
-                'Folder "{name}" copied: {folders, plural, one {# folder} other {# folders}}, {profiles, plural, one {# profile} other {# profiles}}.',
+                'Folder "{name}" copied: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}.',
                 { name: group.name ?? '', folders, profiles },
             ),
             purged ? this.i18n.t('Removed: {purged}.', { purged }) : undefined,
@@ -4435,13 +4557,13 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         const unknown = created.types.filter(t => !this.profileProviders.some(p => p.id === t))
         this.notices.notice(
             this.i18n.t(
-                'Folder "{name}" pasted: {folders, plural, one {# folder} other {# folders}}, {profiles, plural, one {# profile} other {# profiles}}.',
+                'Folder "{name}" pasted: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}.',
                 { name: finalName, folders: created.folders, profiles: created.profiles },
             ),
             [
                 purged ? this.i18n.t('Removed at export: {purged}. To be re-entered.', { purged }) : '',
                 unknown.length ? this.i18n.t(
-                    '{count, plural, one {Profile type not installed} other {Profile types not installed}}: {list}.',
+                    '{count, plural, =1 {Profile type not installed} other {Profile types not installed}}: {list}.',
                     { count: unknown.length, list: [...new Set(unknown)].join(', ') },
                 ) : '',
             ].filter(Boolean).join(' ') || undefined,
@@ -4748,10 +4870,10 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (childCount || profileCount) {
             const reasons: string[] = []
             if (childCount) {
-                reasons.push(this.i18n.t('{count, plural, one {# subfolder} other {# subfolders}}', { count: childCount }))
+                reasons.push(this.i18n.t('{count, plural, =1 {# subfolder} other {# subfolders}}', { count: childCount }))
             }
             if (profileCount) {
-                reasons.push(this.i18n.t('{count, plural, one {# profile} other {# profiles}}', { count: profileCount }))
+                reasons.push(this.i18n.t('{count, plural, =1 {# profile} other {# profiles}}', { count: profileCount }))
             }
             // Said explicitly when the folder looks empty on screen: otherwise
             // the refusal reads as a bug rather than as a warning.

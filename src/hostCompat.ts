@@ -6,16 +6,15 @@ import { checkProfileModalInputs } from './profileModal'
  * What this plugin needs from its host, named one by one.
  *
  * The plugin reaches into Tabby well past its public API — it subclasses
- * `SFTPPanelComponent`, narrows tabs with `instanceof SSHTabComponent`, opens
- * `EditProfileModalComponent` (which the typings do not export), and inserts
- * its own root node into a container found by CSS selector. None of that is
- * contractual, and a Tabby update can take any of it away.
+ * `SFTPPanelComponent`, narrows tabs with `instanceof SSHTabComponent`, and
+ * opens `EditProfileModalComponent` (which the typings do not export). None of
+ * that is contractual, and a Tabby update can take any of it away.
  *
  * The point of this file is *not* to make the plugin survive that — it cannot.
  * It is to make the failure **say something**. Every one of these couplings
- * fails as a non-event today: a sidebar that never appears, a panel that stays
- * empty, an `instanceof` that is quietly false forever. Nothing is thrown,
- * nothing reaches the console, and the diagnosis starts from zero every time.
+ * fails as a non-event today: a panel that stays empty, an `instanceof` that is
+ * quietly false forever. Nothing is thrown, nothing reaches the console, and
+ * the diagnosis starts from zero every time.
  *
  * Two deliberate non-goals:
  *
@@ -24,8 +23,8 @@ import { checkProfileModalInputs } from './profileModal'
  *   that moved something. What is verified is the contact points themselves.
  * - **Not an all-or-nothing gate.** Each precondition names the feature it
  *   carries, so a missing `SFTPPanelComponent` costs the SFTP view and nothing
- *   else. Only `mount-container` is fatal, because without it there is no
- *   sidebar to degrade.
+ *   else. The sidebar itself is now contributed through Tabby's public
+ *   `SidebarContribution` API, so nothing here is fatal any more.
  */
 export interface HostPrecondition {
     id: string
@@ -41,14 +40,6 @@ export interface HostPrecondition {
 const isClass = (x: unknown): boolean => typeof x === 'function'
 
 export const HOST_PRECONDITIONS: HostPrecondition[] = [
-    {
-        id: 'mount-container',
-        feature: 'la sidebar elle-même',
-        // The one host *DOM* dependency left after the profile edit route moved
-        // to the API. `SidebarPlusMountService` inserts its root node here.
-        check: () => !!document.querySelector('.window.h-100.d-flex'),
-        fatal: true,
-    },
     {
         id: 'ssh-tab',
         feature: 'les sessions actives, le SFTP et les tunnels',

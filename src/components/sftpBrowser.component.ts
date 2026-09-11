@@ -3,7 +3,7 @@ import { posix } from 'path'
 import { filesize } from 'filesize'
 import { AfterViewChecked, Component, ElementRef, HostListener, Inject, NgZone, OnDestroy, ViewChild } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
-import { ConfigService, HTMLFileUpload, LocaleService, NotificationsService, PlatformService, PromptModalComponent } from 'tabby-core'
+import { ConfigService, HTMLFileUpload, LocaleService, NotificationsService, PlatformService, PromptModalComponent, TranslateService } from 'tabby-core'
 import { SFTPContextMenuItemProvider, SFTPFile, SFTPPanelComponent } from 'tabby-ssh'
 import { SidebarPlusEditorService } from '../editorLauncher.service'
 import { electronRemote } from '../electronRemote'
@@ -239,9 +239,10 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         private i18n: SidebarPlusI18nService,
         private dragServer: SidebarPlusDragOutServer,
         private registry: SidebarPlusTransfersService,
+        translate: TranslateService,
         @Inject(SFTPContextMenuItemProvider) contextMenuProviders: SFTPContextMenuItemProvider[],
     ) {
-        super(ngbModalService, notify, platform, contextMenuProviders)
+        super(ngbModalService, notify, platform, translate, contextMenuProviders)
         const transfers = new SftpTransfers(platform, notices, registry)
         this.fileTransfers = transfers
         this.platformSvc = platform
@@ -1486,7 +1487,7 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         const named = collisions.slice(0, SidebarPlusSftpBrowserComponent.COLLISIONS_NAMED)
         const rest = collisions.length - named.length
         const list = rest > 0
-            ? this.i18n.t('{names}, and {rest, plural, one {# more} other {# more}}', { names: named.join(', '), rest })
+            ? this.i18n.t('{names}, and {rest, plural, =1 {# more} other {# more}}', { names: named.join(', '), rest })
             : named.join(', ')
         const message = collisions.length > 1
             ? this.i18n.t(
@@ -1545,23 +1546,23 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         if (sent > 0) {
             this.notices.notice(folders > 0
                 ? this.i18n.t(
-                    '{sent, plural, one {# file} other {# files}} sent to {destination} ({folders, plural, one {# folder} other {# folders}})',
+                    '{sent, plural, =1 {# file} other {# files}} sent to {destination} ({folders, plural, =1 {# folder} other {# folders}})',
                     { sent, destination, folders },
                 )
                 : this.i18n.t(
-                    '{sent, plural, one {# file} other {# files}} sent to {destination}',
+                    '{sent, plural, =1 {# file} other {# files}} sent to {destination}',
                     { sent, destination },
                 ))
         } else if (folders > 0 && !failed.length) {
             this.notices.notice(this.i18n.t(
-                '{folders, plural, one {# folder} other {# folders}} created in {destination}',
+                '{folders, plural, =1 {# folder} other {# folders}} created in {destination}',
                 { folders, destination },
             ))
         }
         if (failed.length) {
             this.notices.error(
                 this.i18n.t(
-                    'Could not send {failed, plural, one {# file} other {# files}} of {total}',
+                    'Could not send {failed, plural, =1 {# file} other {# files}} of {total}',
                     { failed: failed.length, total: plan.files.length },
                 ),
                 failed.slice(0, SidebarPlusSftpBrowserComponent.COLLISIONS_NAMED).join(', '),

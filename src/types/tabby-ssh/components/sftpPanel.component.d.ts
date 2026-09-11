@@ -1,5 +1,5 @@
 import { EventEmitter } from '@angular/core';
-import { FileUpload, DirectoryUpload, MenuItemOptions, NotificationsService, PlatformService } from 'tabby-core';
+import { FileUpload, DirectoryUpload, MenuItemOptions, NotificationsService, PlatformService, TranslateService } from 'tabby-core';
 import { SFTPSession, SFTPFile } from '../session/sftp';
 import { SSHSession } from '../session/ssh';
 import { SFTPContextMenuItemProvider } from '../api';
@@ -25,7 +25,7 @@ export declare class SFTPPanelComponent {
     editingPath: string | null;
     showFilter: boolean;
     filterText: string;
-    constructor(ngbModal: NgbModal, notifications: NotificationsService, platform: PlatformService, contextMenuProviders: SFTPContextMenuItemProvider[]);
+    constructor(ngbModal: NgbModal, notifications: NotificationsService, platform: PlatformService, translate: TranslateService, contextMenuProviders: SFTPContextMenuItemProvider[]);
     ngOnInit(): Promise<void>;
     navigate(newPath: string, fallbackOnError?: boolean): Promise<void>;
     getFileType(fileExtension: string): string;

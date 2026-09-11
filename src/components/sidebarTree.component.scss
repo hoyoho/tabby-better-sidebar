@@ -1206,6 +1206,84 @@ sidebar-plus-tree > .sidebar-plus-content {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+    // Containing block for the floating `.selection-bar`: without it the bar
+    // anchors to the tag itself and lands over the connection panel / footer.
+    position: relative;
+}
+
+sidebar-plus-tree .sidebar-plus-connection {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    // Same opaque base as the footer: the panel must stay readable whatever
+    // the theme (and a translucent background image sits behind the sidebar).
+    background-color: #000;
+    background-image: linear-gradient(var(--theme-bg-more-2), var(--theme-bg-more-2));
+    border-top: 1px solid var(--theme-secondary);
+
+    .conn-dot {
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #999;
+
+        &.connected {
+            background-color: #5cb85c;
+        }
+
+        &.error {
+            background-color: #d9534f;
+        }
+    }
+
+    .conn-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    .conn-name {
+        font-size: 0.78rem;
+    }
+
+    .conn-addr {
+        font-size: 0.7rem;
+        opacity: 0.65;
+    }
+}
+
+// Profile preview: the clicked sidebar profile's details. Independent of the
+// session indicator above (only one of the two is ever on screen).
+sidebar-plus-tree .sidebar-plus-preview {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    background-color: #000;
+    background-image: linear-gradient(var(--theme-bg-more-2), var(--theme-bg-more-2));
+    border-top: 1px solid var(--theme-secondary);
+
+    .preview-table {
+        width: 100%;
+        font-size: 0.72rem;
+        border-collapse: collapse;
+
+        td {
+            padding: 1px 0;
+            vertical-align: top;
+        }
+
+        .label {
+            width: 4.5rem;
+            opacity: 0.6;
+        }
+
+        .value {
+            word-break: break-all;
+        }
+    }
 }
 
 sidebar-plus-tree .sidebar-plus-footer {
