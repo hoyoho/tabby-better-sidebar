@@ -37,6 +37,9 @@ const EXTRA_SOURCES = [
     // profileModal.ts a délibérément aucun accès à l'injecteur — la clé sort
     // telle quelle, traduite par les deux appelants de sidebarTree.component.ts.
     { file: 'profileModal.ts', constant: 'PROFILE_MODAL_UNAVAILABLE' },
+    // Le titre de l'onglet de réglages : rendu par le template de tabby-settings
+    // via `| translate`, donc invisible à l'extraction lexicale d'ici.
+    { file: 'settings.ts', constant: 'SIDEBAR_TAB_TITLE' },
 ]
 
 /** Tous les fichiers sous src/ (récursif) filtrés par extension, chemins relatifs à src/. */
@@ -100,13 +103,29 @@ function collectSources () {
 }
 
 function loadTable (lang) {
-    const raw = fs.readFileSync(path.join(SRC, 'i18n', `${lang}.ts`), 'utf8')
-    // Les tables sont nommées puis exportées (`const x = {...}` + `export
-    // default x`) : on isole le littéral d'objet qui suit la déclaration.
-    const start = raw.search(/const \w+: Record<string, string> = \{|export default \{/)
-    const body = sliceLiteral(raw, raw.indexOf('{', start), '{', '}')
-    // eslint-disable-next-line no-eval
-    return eval('(' + body + ')')
+    // Tables live as gettext .po files (locale/<lang>.po), parsed here the same
+    // way po-gettext-loader does at build time: msgid -> msgstr[0].
+    const raw = fs.readFileSync(path.join(ROOT, 'locale', `${lang}.po`), 'utf8')
+    const table = {}
+    let msgid = null
+    let msgstr = null
+    let mode = null
+    for (const line of raw.split('\n')) {
+        if (line.startsWith('msgid ')) {
+            if (msgid) { table[msgid] = msgstr || '' }
+            msgid = JSON.parse(line.slice(6))
+            msgstr = ''
+            mode = 'id'
+        } else if (line.startsWith('msgstr ')) {
+            msgstr = JSON.parse(line.slice(7))
+            mode = 'str'
+        } else if (line.startsWith('"') && mode) {
+            const v = JSON.parse(line)
+            if (mode === 'id') { msgid += v } else { msgstr += v }
+        }
+    }
+    if (msgid) { table[msgid] = msgstr || '' }
+    return table
 }
 
 /** Noms des paramètres `{x}` d'une chaîne. */
@@ -220,10 +239,10 @@ function registeredTables () {
         return []
     }
 
-    const registered = [...literal.matchAll(/'([\w-]+)'\s*:\s*(\w+)/g)].map(m => ({ lang: m[1], binding: m[2] }))
-    const files = fs.readdirSync(path.join(SRC, 'i18n'))
-        .filter(f => f.endsWith('.ts') && f !== 'index.ts')
-        .map(f => f.replace(/\.ts$/, ''))
+    const registered = [...literal.matchAll(/'([\w-]+)'\s*:\s*flattenPo\((\w+)\)/g)].map(m => ({ lang: m[1], binding: m[2] }))
+    const files = fs.readdirSync(path.join(ROOT, 'locale'))
+        .filter(f => f.endsWith('.po'))
+        .map(f => f.replace(/\.po$/, ''))
 
     for (const lang of files) {
         if (!registered.some(r => r.lang === lang)) {
@@ -233,11 +252,11 @@ function registeredTables () {
     }
     for (const { lang, binding } of registered) {
         if (!files.includes(lang)) {
-            console.error(`  ${lang} : enregistrée dans TABLES sans fichier src/i18n/${lang}.ts.`)
+            console.error(`  ${lang} : enregistrée dans TABLES sans fichier locale/${lang}.po.`)
             process.exitCode = 1
         }
-        if (!new RegExp(`import\\s+${binding}\\s+from\\s+'\\./${lang}'`).test(raw)) {
-            console.error(`  ${lang} : enregistrée sous le nom « ${binding} », qui n'importe pas ./${lang}.`)
+        if (!new RegExp(`import\\s+${binding}\\s+from\\s+'\\.\\./\\.\\./locale/${lang}\\.po'`).test(raw)) {
+            console.error(`  ${lang} : enregistrée sous le nom « ${binding} », qui n'importe pas ../../locale/${lang}.po.`)
             process.exitCode = 1
         }
     }

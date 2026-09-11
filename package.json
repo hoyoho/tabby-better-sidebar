@@ -76,6 +76,8 @@
     "filesize": "^11.0.22",
     "fuzzy-search": "^3.2.1",
     "html-validate": "^11.6.0",
+    "json-loader": "^0.5.7",
+    "po-gettext-loader": "^1.0.0",
     "pug": "^2.0.4",
     "pug-loader": "^2.4.0",
     "rxjs": "^7.3.0",

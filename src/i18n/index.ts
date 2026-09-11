@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core'
 import { LocaleService, TranslateService } from 'tabby-core'
 
-import fr_FR from './fr-FR'
-import es_ES from './es-ES'
-import de_DE from './de-DE'
+import fr_FR from '../../locale/fr-FR.po'
+import es_ES from '../../locale/es-ES.po'
+import de_DE from '../../locale/de-DE.po'
+import zh_CN from '../../locale/zh-CN.po'
 
 /**
  * Plugin UI translations, grafted onto Tabby's own mechanism.
@@ -37,9 +38,31 @@ import de_DE from './de-DE'
  * `merge()` comment below explains must not happen.
  */
 const TABLES: Record<string, Record<string, string>> = {
-    'fr-FR': fr_FR,
-    'es-ES': es_ES,
-    'de-DE': de_DE,
+    'fr-FR': flattenPo(fr_FR),
+    'es-ES': flattenPo(es_ES),
+    'de-DE': flattenPo(de_DE),
+    'zh-CN': flattenPo(zh_CN),
+}
+
+/**
+ * `po-gettext-loader` emits the parsed gettext structure
+ * (`{ translations: { '': { msgid: { msgstr: [value] } } } }`); flatten it
+ * into the `{ msgid: value }` shape ngx-translate expects. Empty translations
+ * are dropped so the key falls back to the English source string.
+ */
+function flattenPo (po: any): Record<string, string> {
+    const result: Record<string, string> = {}
+    const table = po?.translations?.[''] ?? {}
+    for (const key of Object.keys(table)) {
+        if (!key) {
+            continue
+        }
+        const value = table[key]?.msgstr?.[0]
+        if (value) {
+            result[key] = value
+        }
+    }
+    return result
 }
 
 /**

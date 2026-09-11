@@ -5,12 +5,19 @@ import { SidebarPlusHostPanelComponent } from './components/hostPanel.component'
 import { SidebarPlusSettingsTabComponent } from './components/settingsTab.component'
 import { BetterPanelElection, electBetterPanelHost, UNIFIED_TAB_ID, UNIFIED_TAB_TITLE } from './betterPanel'
 
+/**
+ * The settings tab's title. Kept as a named constant so `lint:i18n` sees it as
+ * a source string (the tabby-settings template renders it through
+ * `| translate`); the Chinese table renames it to "侧边栏+".
+ */
+export const SIDEBAR_TAB_TITLE = 'Better Sidebar'
+
 /** @hidden */
 @Injectable()
 export class SidebarPlusSettingsTabProvider extends SettingsTabProvider {
     id = 'better-sidebar'
     icon = 'list'
-    title = 'Better Sidebar'
+    title = SIDEBAR_TAB_TITLE
 
     /**
      * Same weight as `tabby-better-vault`'s own tab, deliberately: the tabs are

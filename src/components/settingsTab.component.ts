@@ -83,6 +83,7 @@ export class SidebarPlusSettingsTabComponent {
     get lblPageSubtitle (): string { return this.i18n.t('Every block below can be switched off; the sidebar itself can too.') }
     get lblGeneral (): string { return this.i18n.t('General') }
     get lblFeatures (): string { return this.i18n.t('Features') }
+    get lblSnippets (): string { return this.i18n.t('Snippets') }
     get lblShowSidebar (): string { return this.i18n.t('Show the sidebar') }
     get lblShowSidebarHint (): string { return this.i18n.t('Removes the sidebar without uninstalling anything.') }
     get lblShowSidebarDesc (): string { return this.i18n.t('Untick to hide it; this page stays reachable.') }

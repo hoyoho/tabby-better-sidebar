@@ -37,7 +37,7 @@
     //- que pour une fonctionnalité : un onglet qui survit à ce qu'il règle se
     //- lit comme cassé plutôt que comme sans objet.
     li.nav-item(*ngIf="blockOn('showSnippets')")
-      a.nav-link(href='#', [class.active]="section === 'snippets'", (click)="setSection('snippets', $event)") Snippets
+      a.nav-link(href='#', [class.active]="section === 'snippets'", (click)="setSection('snippets', $event)") {{ lblSnippets }}
 
   ng-container(*ngIf="section === 'general'")
     .settings-section
@@ -120,7 +120,7 @@
 
       .form-line.block-switch
         .header
-          .title Snippets #[i.fas.fa-info-circle.info-hint([title]='lblSnippetsHint')]
+          .title {{ lblSnippets }} #[i.fas.fa-info-circle.info-hint([title]='lblSnippetsHint')]
           .description {{ lblSnippetsDesc }}
         .control
           toggle(

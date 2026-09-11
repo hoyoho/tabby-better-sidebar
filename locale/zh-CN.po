@@ -1,0 +1,1300 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "Protocol"
+msgstr "协议"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Host"
+msgstr "主机"
+
+msgid "Snippets"
+msgstr "片段"
+
+msgid "Better Sidebar"
+msgstr "侧边栏+"
+
+msgid "SSH session lost ({tab}) — back to Profiles view"
+msgstr "SSH 会话已断开（{tab}）——返回配置视图"
+
+msgid "SSH session lost — back to Profiles view"
+msgstr "SSH 会话已断开——返回配置视图"
+
+msgid "No more active SSH session — back to Profiles view"
+msgstr "没有活动的 SSH 会话了——返回配置视图"
+
+msgid "Frozen view — click to follow focus again"
+msgstr "视图已冻结——点击以重新跟随焦点"
+
+msgid "Freeze view on this session"
+msgstr "在此会话上冻结视图"
+
+msgid "Waiting for an active SSH session."
+msgstr "正在等待活动的 SSH 会话。"
+
+msgid "Open an SSH profile — the panel will follow the selected tab."
+msgstr "打开一个 SSH 配置——面板会跟随选中的标签页。"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "File size"
+msgstr "文件大小"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Date modified"
+msgstr "修改日期"
+
+msgid "Perm."
+msgstr "权限"
+
+msgid "Permissions in octal (755)"
+msgstr "八进制权限（755）"
+
+msgid "Rights"
+msgstr "权限"
+
+msgid "Permissions in long form (drwxr-xr-x)"
+msgstr "长格式权限（drwxr-xr-x）"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Item type"
+msgstr "项目类型"
+
+msgid "Ext."
+msgstr "扩展名"
+
+msgid "File extension"
+msgstr "文件扩展名"
+
+msgid "Folders first"
+msgstr "文件夹优先"
+
+msgid "Show hidden files"
+msgstr "显示隐藏文件"
+
+msgid "Column borders"
+msgstr "列边框"
+
+msgid "Alternating rows"
+msgstr "隔行变色"
+
+msgid "Destination folder for {name}"
+msgstr "{name} 的目标文件夹"
+
+msgid "Download here"
+msgstr "下载到此处"
+
+msgid "{name} downloaded to {base}"
+msgstr "{name} 已下载到 {base}"
+
+msgid "{name}: incomplete download"
+msgstr "{name}：下载不完整"
+
+msgid "New file name"
+msgstr "新文件名"
+
+msgid "The name cannot contain \"/\""
+msgstr "名称不能包含“/”"
+
+msgid "{name} already exists"
+msgstr "{name} 已存在"
+
+msgid "Could not create {name}"
+msgstr "无法创建 {name}"
+
+msgid "Could not follow the link {name}"
+msgstr "无法跟随链接 {name}"
+
+msgid "{name} points to a target that cannot be found"
+msgstr "{name} 指向的目标不存在"
+
+msgid "{name} → {target}"
+msgstr "{name} → {target}"
+
+msgid "Could not read the contents of {name}"
+msgstr "无法读取 {name} 的内容"
+
+msgid "\"{name}\" contains more than {count} files ({size} at least). Everything will be downloaded before drag-and-drop becomes possible, with no progress and no way to cancel. Continue?"
+msgstr "“{name}”包含超过 {count} 个文件（至少 {size}）。全部下载完成后才能拖放，过程中没有进度也无法取消。是否继续？"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Could not read what was dropped"
+msgstr "无法读取拖入的内容"
+
+msgid "{name} is not a folder — nothing was moved"
+msgstr "{name} 不是文件夹——未移动任何内容"
+
+msgid "{name} is not a folder — sending to {path}"
+msgstr "{name} 不是文件夹——正在发送到 {path}"
+
+msgid "{names}, and {rest, plural, =1 {# more} other {# more}}"
+msgstr "{names}，以及另外 {rest, plural, other {# 项}}"
+
+msgid "{count} files already exist under {destination} and will be overwritten: {list}. Continue?"
+msgstr "{destination} 下已存在 {count} 个文件，将被覆盖：{list}。是否继续？"
+
+msgid "A file already exists under {destination} and will be overwritten: {list}. Continue?"
+msgstr "{destination} 下已存在一个文件，将被覆盖：{list}。是否继续？"
+
+msgid "Overwrite"
+msgstr "覆盖"
+
+msgid "{sent, plural, =1 {# file} other {# files}} sent to {destination} ({folders, plural, =1 {# folder} other {# folders}})"
+msgstr "{sent, plural, other {# 个文件}}已发送到 {destination}（{folders, plural, other {# 个文件夹}}）"
+
+msgid "{sent, plural, =1 {# file} other {# files}} sent to {destination}"
+msgstr "{sent, plural, other {# 个文件}}已发送到 {destination}"
+
+msgid "{folders, plural, =1 {# folder} other {# folders}} created in {destination}"
+msgstr "已在 {destination} 创建 {folders, plural, other {# 个文件夹}}"
+
+msgid "Could not send {failed, plural, =1 {# file} other {# files}} of {total}"
+msgstr "无法发送 {total} 个文件中的 {failed, plural, other {# 个}}"
+
+msgid "Dragging folders out is disabled — enable it in Settings → Better Sidebar"
+msgstr "已禁用向外拖拽文件夹——可在 设置 → Better Sidebar 中启用"
+
+msgid "{name} cannot be moved into itself"
+msgstr "{name} 不能移动到自身"
+
+msgid "{name} already exists in {destination}"
+msgstr "{name} 在 {destination} 中已存在"
+
+msgid "Could not move {name}: {error}"
+msgstr "无法移动 {name}：{error}"
+
+msgid "{name} moved to {destination}"
+msgstr "{name} 已移动到 {destination}"
+
+msgid "Could not move {name} to {destination}"
+msgstr "无法将 {name} 移动到 {destination}"
+
+msgid "{count} items moved to {destination}"
+msgstr "已将 {count} 项移动到 {destination}"
+
+msgid "No move succeeded"
+msgstr "没有移动成功"
+
+msgid "{succeeded} moved, {failed} failed"
+msgstr "成功 {succeeded} 项，失败 {failed} 项"
+
+msgid "Open with..."
+msgstr "打开方式…"
+
+msgid "Rename..."
+msgstr "重命名…"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete selection ({count})"
+msgstr "删除所选（{count}）"
+
+msgid "New name for \"{name}\""
+msgstr "为“{name}”输入新名称"
+
+msgid "The name cannot contain \"/\" — this renames, it does not move"
+msgstr "名称不能包含“/”——这里只是重命名，不是移动"
+
+msgid "{name} already exists in this folder"
+msgstr "{name} 已在此文件夹中存在"
+
+msgid "Could not rename {name}"
+msgstr "无法重命名 {name}"
+
+msgid "{old} renamed to {new}"
+msgstr "{old} 已重命名为 {new}"
+
+msgid "Delete folder \"{name}\" and everything in it?"
+msgstr "删除文件夹“{name}”及其中的所有内容？"
+
+msgid "Confirm deletion of \"{name}\"?"
+msgstr "确认删除“{name}”？"
+
+msgid "{name} deleted"
+msgstr "{name} 已删除"
+
+msgid "Could not delete {name}"
+msgstr "无法删除 {name}"
+
+msgid "Delete {count} items? This action is irreversible."
+msgstr "删除 {count} 项？此操作不可撤销。"
+
+msgid "{name}: {error}"
+msgstr "{name}：{error}"
+
+msgid "{count} items deleted"
+msgstr "已删除 {count} 项"
+
+msgid "{succeeded} deleted, {failed} failed"
+msgstr "成功删除 {succeeded} 项，失败 {failed} 项"
+
+msgid "Link"
+msgstr "链接"
+
+msgid "Folder"
+msgstr "文件夹"
+
+msgid "File"
+msgstr "文件"
+
+msgid "Size: {size} ({bytes} bytes)"
+msgstr "大小：{size}（{bytes} 字节）"
+
+msgid "Modified: {date}"
+msgstr "修改时间：{date}"
+
+msgid "Permissions: {octal} — {long}"
+msgstr "权限：{octal} — {long}"
+
+msgid "Type: {type}"
+msgstr "类型：{type}"
+
+msgid "Symbolic link"
+msgstr "符号链接"
+
+msgid "Double-click to type a path"
+msgstr "双击以输入路径"
+
+msgid "Type the path by hand"
+msgstr "手动输入路径"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Filter the list"
+msgstr "过滤列表"
+
+msgid "New remote folder"
+msgstr "新建远程文件夹"
+
+msgid "Send files to the server"
+msgstr "发送文件到服务器"
+
+msgid "Send a folder to the server"
+msgstr "发送文件夹到服务器"
+
+msgid "Filter..."
+msgstr "过滤…"
+
+msgid "Clear the filter"
+msgstr "清除过滤"
+
+msgid "Connecting..."
+msgstr "正在连接…"
+
+msgid "Loading..."
+msgstr "正在加载…"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Go up one level"
+msgstr "返回上一级"
+
+msgid "… {n} more items"
+msgstr "… 还有 {n} 项"
+
+msgid "No file matches the filter."
+msgstr "没有文件匹配过滤条件。"
+
+msgid "Create a folder"
+msgstr "创建文件夹"
+
+msgid "Create a file"
+msgstr "创建文件"
+
+msgid "Display settings"
+msgstr "显示设置"
+
+msgid "Columns"
+msgstr "列"
+
+msgid "Confirm"
+msgstr "确认"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Note: {name}"
+msgstr "备注：{name}"
+
+msgid "Restart commands, maintenance reminders, ticket numbers…"
+msgstr "重启命令、维护提醒、工单号…"
+
+msgid "Clearing the field removes the note."
+msgstr "清空该字段即删除备注。"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Paste the folder: {name}"
+msgstr "粘贴文件夹：{name}"
+
+msgid "A folder named <strong>{name}</strong> already exists at the root."
+msgstr "根目录下已存在名为 <strong>{name}</strong> 的文件夹。"
+
+msgid "To paste: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "待粘贴：{folders, plural, other {# 个文件夹}}，{profiles, plural, other {# 个配置}}。"
+
+msgid "Removed from the export: {info}. Re-enter after pasting."
+msgstr "已从导出中移除：{info}。粘贴后请重新输入。"
+
+msgid "Paste alongside"
+msgstr "并列粘贴"
+
+msgid "A new folder \"{name}\". Nothing existing is touched."
+msgstr "新建文件夹“{name}”。不影响现有内容。"
+
+msgid "Merge into the existing folder"
+msgstr "合并到现有文件夹"
+
+msgid "Profiles and subfolders added to \"{name}\". Duplicates are not detected."
+msgstr "配置和子文件夹已添加到“{name}”。不会检测重复项。"
+
+msgid "Snippets: {name}"
+msgstr "片段：{name}"
+
+msgid "No snippets."
+msgstr "没有片段。"
+
+msgid "Variables and behaviour of this snippet here"
+msgstr "在此设置该片段的变量和行为"
+
+msgid "Remove from here: stays in the library"
+msgstr "从此处移除：仍保留在库中"
+
+msgid "Detach"
+msgstr "分离"
+
+msgid "Variables"
+msgstr "变量"
+
+msgid "Required, not filled in."
+msgstr "必填，尚未填写。"
+
+msgid "\"{value}\" contains a space and is not quoted. Write \"{token}\" in the command, or quote the value here."
+msgstr "“{value}”含空格且未加引号。请在命令中写“{token}”，或在此为值加引号。"
+
+msgid "Behaviour"
+msgstr "行为"
+
+msgid "On click"
+msgstr "点击时"
+
+msgid "Follow (run)"
+msgstr "跟随（运行）"
+
+msgid "Follow (write)"
+msgstr "跟随（写入）"
+
+msgid "Write without confirming"
+msgstr "写入但不确认"
+
+msgid "Write and run"
+msgstr "写入并运行"
+
+msgid "Without a session"
+msgstr "无会话时"
+
+msgid "Follow (launch)"
+msgstr "跟随（启动）"
+
+msgid "Follow (do nothing)"
+msgstr "跟随（不操作）"
+
+msgid "Do nothing"
+msgstr "不操作"
+
+msgid "Launch the session"
+msgstr "启动会话"
+
+msgid "Wait"
+msgstr "等待"
+
+msgid "to fill in"
+msgstr "待填写"
+
+msgid "follow"
+msgstr "跟随"
+
+msgid "Inherited"
+msgstr "继承"
+
+msgid "Reactivate here"
+msgstr "在此重新启用"
+
+msgid "No longer offer here: stays attached to the folder"
+msgstr "不再在此提供：仍附加于该文件夹"
+
+msgid "Reactivate"
+msgstr "重新启用"
+
+msgid "Disable here"
+msgstr "在此禁用"
+
+msgid "Available snippets"
+msgstr "可用片段"
+
+msgid "Attach here"
+msgstr "附加到此处"
+
+msgid "Attach"
+msgstr "附加"
+
+msgid "Inherit (run)"
+msgstr "继承（运行）"
+
+msgid "Inherit (write)"
+msgstr "继承（写入）"
+
+msgid "Inherit (launch)"
+msgstr "继承（启动）"
+
+msgid "Inherit (do nothing)"
+msgstr "继承（不操作）"
+
+msgid "Inherited from the content of the folder."
+msgstr "继承自该文件夹的内容。"
+
+msgid "Manage the library"
+msgstr "管理片段库"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Transfers"
+msgstr "传输"
+
+msgid "Clear the list — running transfers will be cancelled"
+msgstr "清空列表——正在进行的传输将被取消"
+
+msgid "Transfer finished — the system is still placing the file at its destination. The shown duration is an estimate: nothing signals when this copy ends."
+msgstr "传输已完成——系统仍在将文件放置到目标位置。显示的时长只是估计：系统不会通知此复制何时结束。"
+
+msgid "handing over to the system…"
+msgstr "正在交由系统处理…"
+
+msgid "cancelled"
+msgstr "已取消"
+
+msgid "interrupted at {percent} %"
+msgstr "在 {percent}% 处中断"
+
+msgid "incomplete at destination"
+msgstr "目标处不完整"
+
+msgid "Estimated time remaining"
+msgstr "预计剩余时间"
+
+msgid "Elapsed time"
+msgstr "已用时间"
+
+msgid "Cancel this transfer and remove it"
+msgstr "取消此传输并将其移除"
+
+msgid "Remove from the list"
+msgstr "从列表中移除"
+
+msgid "Cancel \"{name}\" while it is running?"
+msgstr "在“{name}”运行时取消它？"
+
+msgid "Cancel the transfer"
+msgstr "取消传输"
+
+msgid "One transfer is still running. Clearing the list will cancel it. Continue?"
+msgstr "还有一个传输正在进行。清空列表将取消它。是否继续？"
+
+msgid "{count} transfers are still running. Clearing the list will cancel them. Continue?"
+msgstr "还有 {count} 个传输正在进行。清空列表将取消它们。是否继续？"
+
+msgid "Clear and cancel"
+msgstr "清空并取消"
+
+msgid "Session: {label}"
+msgstr "会话：{label}"
+
+msgid "{count} running"
+msgstr "{count} 个进行中"
+
+msgid "{count, plural, =1 {# finished} other {# finished}}"
+msgstr "{count, plural, other {# 项已完成}}"
+
+msgid "{count, plural, =1 {# cancelled} other {# cancelled}}"
+msgstr "{count, plural, other {# 项已取消}}"
+
+msgid "{count, plural, =1 {# interrupted} other {# interrupted}}"
+msgstr "{count, plural, other {# 项已中断}}"
+
+msgid "{count, plural, =1 {# incomplete at destination} other {# incomplete at destination}}"
+msgstr "{count, plural, other {# 项目标处不完整}}"
+
+msgid "Profiles"
+msgstr "配置"
+
+msgid "SFTP of the active session"
+msgstr "活动会话的 SFTP"
+
+msgid "Active sessions"
+msgstr "活动会话"
+
+msgid "Open the SFTP of this session"
+msgstr "打开此会话的 SFTP"
+
+msgid "Recently launched"
+msgstr "最近启动"
+
+msgid "Active tunnels"
+msgstr "活动隧道"
+
+msgid "resuming…"
+msgstr "正在恢复…"
+
+msgid "not restored"
+msgstr "未恢复"
+
+msgid "Open {url} in the browser"
+msgstr "在浏览器中打开 {url}"
+
+msgid "Go to the session"
+msgstr "转到会话"
+
+msgid "All"
+msgstr "全部"
+
+msgid "New workspace"
+msgstr "新建工作区"
+
+msgid "Filter (Ctrl+F)"
+msgstr "过滤（Ctrl+F）"
+
+msgid "Hidden items in this workspace"
+msgstr "此工作区中隐藏的项目"
+
+msgid "{count, plural, =1 {# profile selected} other {# profiles selected}}"
+msgstr "{count, plural, other {# 个配置已选择}}"
+
+msgid "Clear the selection"
+msgstr "清除选择"
+
+msgid "Drag the selection, or right-click the destination folder"
+msgstr "拖动所选内容，或右键点击目标文件夹"
+
+msgid "No hidden items in this workspace."
+msgstr "此工作区中没有隐藏项目。"
+
+msgid "Show again"
+msgstr "重新显示"
+
+msgid "Connected"
+msgstr "已连接"
+
+msgid "Disconnected"
+msgstr "已断开"
+
+msgid "No session"
+msgstr "无会话"
+
+msgid "{count} tunnel(s) mounted on this session"
+msgstr "此会话上已挂载 {count} 个隧道"
+
+msgid "{count} tunnel(s) configured: mounted when the session launches"
+msgstr "已配置 {count} 个隧道：会话启动时挂载"
+
+msgid "Upload in progress"
+msgstr "正在上传"
+
+msgid "Download in progress"
+msgstr "正在下载"
+
+msgid "Move the selection here ({count})"
+msgstr "将所选内容移动到这里（{count}）"
+
+msgid "Launch all sessions"
+msgstr "启动所有会话"
+
+msgid "Edit the note..."
+msgstr "编辑备注…"
+
+msgid "Add a note..."
+msgstr "添加备注…"
+
+msgid "Remove from favorites"
+msgstr "从收藏中移除"
+
+msgid "Add to favorites"
+msgstr "添加到收藏"
+
+msgid "New folder..."
+msgstr "新建文件夹…"
+
+msgid "New profile..."
+msgstr "新建配置…"
+
+msgid "Change the icon..."
+msgstr "更改图标…"
+
+msgid "Copy the structure (JSON)"
+msgstr "复制结构（JSON）"
+
+msgid "Copy without credentials"
+msgstr "复制（不含凭据）"
+
+msgid "Hide in this workspace"
+msgstr "在此工作区中隐藏"
+
+msgid "Paste the folder"
+msgstr "粘贴文件夹"
+
+msgid "Profile tunnels..."
+msgstr "配置隧道…"
+
+msgid "Edit..."
+msgstr "编辑…"
+
+msgid "Duplicate"
+msgstr "克隆"
+
+msgid "Choose an icon"
+msgstr "选择图标"
+
+msgid "Remove the icon"
+msgstr "移除图标"
+
+msgid "Favorites"
+msgstr "收藏"
+
+msgid "Right-click an icon: \"Add to favorites\""
+msgstr "右键点击图标：“添加到收藏”"
+
+msgid "Recently used"
+msgstr "最近使用"
+
+msgid "Search (e.g. server, folder, star...)"
+msgstr "搜索（如 服务器、文件夹、星标…）"
+
+msgid "Import from an SVG..."
+msgstr "从 SVG 导入…"
+
+msgid "Apply the SVG"
+msgstr "应用 SVG"
+
+msgid "Default variant"
+msgstr "默认变体"
+
+msgid "Light variant"
+msgstr "浅色变体"
+
+msgid "Dark variant"
+msgstr "深色变体"
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "New folder"
+msgstr "新建文件夹"
+
+msgid "Folder name"
+msgstr "文件夹名称"
+
+msgid "Create"
+msgstr "创建"
+
+msgid "Tunnels: {name}"
+msgstr "隧道：{name}"
+
+msgid "No tunnels configured on this profile."
+msgstr "此配置上没有配置隧道。"
+
+msgid "Double-click to edit this tunnel"
+msgstr "双击以编辑此隧道"
+
+msgid "Delete this tunnel"
+msgstr "删除此隧道"
+
+msgid "This tunnel is currently mounted on the open session. Deleting it here would remove its configuration without cutting the tunnel, which would keep running until the session closes. Close the session to be able to delete it."
+msgstr "此隧道当前挂载在打开的会话上。在此删除只会移除其配置而不会切断隧道，隧道会继续运行直到会话关闭。请关闭会话后再删除。"
+
+msgid "Listening port"
+msgstr "监听端口"
+
+msgid "Target host"
+msgstr "目标主机"
+
+msgid "Target port"
+msgstr "目标端口"
+
+msgid "Description (optional)"
+msgstr "描述（可选）"
+
+msgid "Add the tunnel"
+msgstr "添加隧道"
+
+msgid "Takes effect at the next session launch."
+msgstr "将在下次启动会话时生效。"
+
+msgid "New profile"
+msgstr "新配置"
+
+msgid "Delete the profile"
+msgstr "删除配置"
+
+msgid "Delete \"{name}\"? This action is irreversible."
+msgstr "删除“{name}”？此操作不可撤销。"
+
+msgid "Icon..."
+msgstr "图标…"
+
+msgid "Color..."
+msgstr "颜色…"
+
+msgid "Copy (JSON)"
+msgstr "复制（JSON）"
+
+msgid "Manage this workspace"
+msgstr "管理工作区"
+
+msgid "New workspace..."
+msgstr "新建工作区…"
+
+msgid "Workspace name"
+msgstr "工作区名称"
+
+msgid "Import from the clipboard"
+msgstr "从剪贴板导入"
+
+msgid "Rename the workspace"
+msgstr "重命名工作区"
+
+msgid "Workspace color"
+msgstr "工作区颜色"
+
+msgid "Remove the color"
+msgstr "移除颜色"
+
+msgid "Delete the workspace"
+msgstr "删除工作区"
+
+msgid "Delete \"{name}\"? Hidden profiles and folders become visible everywhere else. This action is irreversible."
+msgstr "删除“{name}”？隐藏的配置和文件夹将在其它工作区中重新可见。此操作不可撤销。"
+
+msgid "Better Sidebar settings"
+msgstr "侧边栏+ 设置"
+
+msgid "Variables to fill in on \"{name}\""
+msgstr "“{name}”上待填写的变量"
+
+msgid "{detail}: right-click the profile, \"Snippets\", then the snippet settings button."
+msgstr "{detail}：右键点击配置，选择“片段”，然后点击片段设置按钮。"
+
+msgid "This folder contains no profile to launch"
+msgstr "此文件夹中没有可启动的配置"
+
+msgid "The clipboard does not hold an exported workspace."
+msgstr "剪贴板中没有导出的工作区。"
+
+msgid "Imported workspace"
+msgstr "导入的工作区"
+
+msgid "Workspace \"{name}\" imported."
+msgstr "工作区“{name}”已导入。"
+
+msgid "Workspace \"{name}\" copied."
+msgstr "工作区“{name}”已复制。"
+
+msgid "Pinned"
+msgstr "已固定"
+
+msgid "\"{name}\" expects a value"
+msgstr "“{name}”需要一个值"
+
+msgid "{list}: to fill in under \"Snippets\"."
+msgstr "{list}：在“片段”下填写。"
+
+msgid "\"{name}\" has no open session"
+msgstr "“{name}”没有打开的会话"
+
+msgid "The session of \"{name}\" did not open"
+msgstr "“{name}”的会话未能打开"
+
+msgid "Transfers: {count} running, total speed {speed}"
+msgstr "传输：{count} 个进行中，总速度 {speed}"
+
+msgid "Transfers: {count} running"
+msgstr "传输：{count} 个进行中"
+
+msgid "{d}d {h}h"
+msgstr "{d} 天 {h} 小时"
+
+msgid "{d} d {h} h"
+msgstr "{d} 天 {h} 时"
+
+msgid "{detail}: session cut, tunnel waiting to resume"
+msgstr "{detail}：会话中断，隧道等待恢复"
+
+msgid "{detail}: not restored after the reconnection. Only the tunnels saved in the profile are remounted; a tunnel added on the fly disappears with its session."
+msgstr "{detail}：重连后未恢复。只有保存在配置中的隧道会重新挂载；临时添加的隧道会随会话消失。"
+
+msgid "Tunnel {detail} already mounted by {owner}: duplicate dismounted ({session})"
+msgstr "隧道 {detail} 已由 {owner} 挂载：已卸载重复项（{session}）"
+
+msgid "Listens on the remote server. The destination is resolved from your PC."
+msgstr "在远程服务器上监听。目标地址从你的电脑解析。"
+
+msgid "Opens a SOCKS proxy on your PC, with no fixed destination."
+msgstr "在你的电脑上打开 SOCKS 代理，没有固定目标。"
+
+msgid "Listens on your PC. The destination is resolved from the server, so \"localhost\" there means the server."
+msgstr "在你的电脑上监听。目标地址从服务器解析，因此那里的“localhost”指服务器。"
+
+msgid "Enter a listening port."
+msgstr "请输入监听端口。"
+
+msgid "Enter the destination host and port."
+msgstr "请输入目标主机和端口。"
+
+msgid "Tunnel updated"
+msgstr "隧道已更新"
+
+msgid "Tunnel saved"
+msgstr "隧道已保存"
+
+msgid "The current session keeps the old one until it is relaunched."
+msgstr "当前会话在重新启动前仍使用旧的配置。"
+
+msgid "It will be mounted at the next launch of this session."
+msgstr "将在下次启动此会话时挂载。"
+
+msgid "This tunnel is mounted on the current session. Close the session to be able to delete it."
+msgstr "此隧道挂载在当前会话上。请关闭会话后再删除。"
+
+msgid "No group"
+msgstr "无分组"
+
+msgid "{count} profiles moved to \"{where}\""
+msgstr "已将 {count} 个配置移动到“{where}”"
+
+msgid "Profile moved to \"{where}\""
+msgstr "配置已移动到“{where}”"
+
+msgid "Moving the folder failed"
+msgstr "移动文件夹失败"
+
+msgid "SVG rejected."
+msgstr "SVG 被拒绝。"
+
+msgid "No provider handles \"{name}\": opening the settings"
+msgstr "没有提供程序处理“{name}”：正在打开设置"
+
+msgid "{name} - Copy"
+msgstr "{name} - 副本"
+
+msgid "Folder \"{name}\" copied: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "文件夹“{name}”已复制：{folders, plural, other {# 个文件夹}}，{profiles, plural, other {# 个配置}}。"
+
+msgid "Removed: {purged}."
+msgstr "已移除：{purged}。"
+
+msgid "The clipboard does not hold a shared folder."
+msgstr "剪贴板中没有共享的文件夹。"
+
+msgid "Pasted folder"
+msgstr "粘贴的文件夹"
+
+msgid "Folder \"{name}\" pasted: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "文件夹“{name}”已粘贴：{folders, plural, other {# 个文件夹}}，{profiles, plural, other {# 个配置}}。"
+
+msgid "Removed at export: {purged}. To be re-entered."
+msgstr "导出时已移除：{purged}。需要重新输入。"
+
+msgid "{count, plural, =1 {Profile type not installed} other {Profile types not installed}}: {list}."
+msgstr "{count, plural, other {未安装的配置类型}}：{list}。"
+
+msgid "This JSON still carried secrets its own header declared removed."
+msgstr "此 JSON 仍带有其头部声明已移除的机密。"
+
+msgid "Removed at paste: {purged}."
+msgstr "粘贴时已移除：{purged}。"
+
+msgid "{count, plural, =1 {# subfolder} other {# subfolders}}"
+msgstr "{count, plural, other {# 个子文件夹}}"
+
+msgid "{count, plural, =1 {# profile} other {# profiles}}"
+msgstr "{count, plural, other {# 个配置}}"
+
+msgid "{a} and {b}"
+msgstr "{a} 和 {b}"
+
+msgid "current"
+msgstr "当前"
+
+msgid "This content is hidden in the workspace \"{name}\"."
+msgstr "此内容在工作区“{name}”中被隐藏。"
+
+msgid "Cannot delete \"{name}\""
+msgstr "无法删除“{name}”"
+
+msgid "This folder still contains {reasons}.{hint} Empty it first."
+msgstr "此文件夹仍包含 {reasons}。{hint} 请先清空它。"
+
+msgid "General"
+msgstr "通用"
+
+msgid "Features"
+msgstr "功能"
+
+msgid "Show the sidebar"
+msgstr "显示侧边栏"
+
+msgid "Removes the sidebar without uninstalling anything."
+msgstr "移除侧边栏但不会卸载任何东西。"
+
+msgid "Untick to hide it; this page stays reachable."
+msgstr "取消勾选即可隐藏；此页面仍可访问。"
+
+msgid "Hide the Tabby transfers menu"
+msgstr "隐藏 Tabby 的传输菜单"
+
+msgid "Otherwise the native Tabby menu opens on every transfer."
+msgstr "否则每次传输时 Tabby 原生菜单都会弹出。"
+
+msgid "The sidebar panel already shows the same transfers."
+msgstr "侧边栏面板已经显示了相同的传输。"
+
+msgid "Each block switches on independently. Nothing is deleted by turning one off."
+msgstr "每个区块独立开关。关闭某个区块不会删除任何内容。"
+
+msgid "Mirrors the state of Tabby port forwarding."
+msgstr "镜像 Tabby 端口转发的状态。"
+
+msgid "Port forwarding panel and badges on the profiles."
+msgstr "端口转发面板以及配置上的徽标。"
+
+msgid "Unavailable on this version of Tabby. Your setting is kept."
+msgstr "此版本的 Tabby 上不可用。你的设置已保留。"
+
+msgid "Workspaces"
+msgstr "工作区"
+
+msgid "\"All\" excludes nothing; the filter bar searches everywhere."
+msgstr "“全部”不排除任何内容；过滤栏在所有位置搜索。"
+
+msgid "Workspace bar, above the list."
+msgstr "工作区栏，位于列表上方。"
+
+msgid "Presentation"
+msgstr "呈现方式"
+
+msgid "Tabs or a compact list, as you prefer."
+msgstr "标签页或紧凑列表，任你选择。"
+
+msgid "Changes how the workspace bar is displayed."
+msgstr "更改工作区栏的显示方式。"
+
+msgid "Tabs (wrap onto new lines)"
+msgstr "标签页（换行显示）"
+
+msgid "Dropdown list"
+msgstr "下拉列表"
+
+msgid "Filter bar"
+msgstr "过滤栏"
+
+msgid "Searches the name, description, host and username."
+msgstr "搜索名称、描述、主机和用户名。"
+
+msgid "Search field and shortcut"
+msgstr "搜索框和快捷键"
+
+msgid "A library of commands attached to profiles and folders."
+msgstr "附加到配置和文件夹的命令库。"
+
+msgid "The \"Snippets\" entry of the right click and its dedicated tab."
+msgstr "右键菜单中的“片段”项及其专属标签页。"
+
+msgid "Notes"
+msgstr "备注"
+
+msgid "A free-form memo per profile or folder."
+msgstr "为每个配置或文件夹保存的自由备注。"
+
+msgid "The \"note\" entry of the right click and its badge."
+msgstr "右键菜单中的“备注”项及其徽标。"
+
+msgid "Recent profiles"
+msgstr "最近配置"
+
+msgid "The 5 most recently launched profiles, all types together."
+msgstr "最近启动的 5 个配置，包含所有类型。"
+
+msgid "A list shown under the active sessions."
+msgstr "显示在活动会话下方的列表。"
+
+msgid "One row per pane, not per tab."
+msgstr "每个窗格一行，而非每个标签页。"
+
+msgid "Open SSH connections, at the top of the sidebar."
+msgstr "打开的 SSH 连接，位于侧边栏顶部。"
+
+msgid "Latency probe, in seconds"
+msgstr "延迟探测，单位秒"
+
+msgid "A real SFTP round trip, not an ICMP ping."
+msgstr "真实的 SFTP 往返，而非 ICMP ping。"
+
+msgid "Colors the dot of each session. 0 disables."
+msgstr "为每个会话的圆点着色。0 表示禁用。"
+
+msgid "SFTP view"
+msgstr "SFTP 视图"
+
+msgid "One SFTP channel per session actually browsed."
+msgstr "每个实际浏览的会话一个 SFTP 通道。"
+
+msgid "The SFTP tab of the sidebar and its panel."
+msgstr "侧边栏的 SFTP 标签页及其面板。"
+
+msgid "Remote file editor"
+msgstr "远程文件编辑器"
+
+msgid "The file is copied, edited, then sent back to the server."
+msgstr "文件被复制、编辑，然后发送回服务器。"
+
+msgid "Program opened on double-click. Empty, Windows decides."
+msgstr "双击时打开的程序。留空则由 Windows 决定。"
+
+msgid "No editor chosen"
+msgstr "未选择编辑器"
+
+msgid "Browse..."
+msgstr "浏览…"
+
+msgid "Erase"
+msgstr "清除"
+
+msgid "Drag a folder out to Explorer"
+msgstr "将文件夹拖拽到资源管理器"
+
+msgid "The folder is downloaded in full before the drop."
+msgstr "拖放前会先完整下载该文件夹。"
+
+msgid "Beyond 25 files or 20 MB, confirmation is asked."
+msgstr "超过 25 个文件或 20 MB 时会请求确认。"
+
+msgid "Automatic refresh, in seconds"
+msgstr "自动刷新，单位秒"
+
+msgid "Only changed entries are redrawn."
+msgstr "仅重绘发生变化的条目。"
+
+msgid "0 disables; every cycle re-reads the folder."
+msgstr "0 表示禁用；每个周期都会重新读取文件夹。"
+
+msgid "Return to Profiles when no SSH session is open any more"
+msgstr "不再有打开的 SSH 会话时返回配置视图"
+
+msgid "Also covers the waiting screen of the SFTP panel."
+msgstr "也适用于 SFTP 面板的等待界面。"
+
+msgid "Waits for the grace period of the displayed session to end."
+msgstr "等待所显示会话的宽限期结束。"
+
+msgid "Deletion: button activated by Enter"
+msgstr "删除：按回车激活按钮"
+
+msgid "No deletion can be undone afterwards."
+msgstr "删除后无法撤销。"
+
+msgid "Applies to"
+msgstr "适用于"
+
+msgid "and to the right click."
+msgstr "以及右键菜单。"
+
+msgid "always cancels."
+msgstr "始终取消。"
+
+msgid "Del"
+msgstr "Del"
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel: the safe answer (default)"
+msgstr "取消：安全的答案（默认）"
+
+msgid "Delete: Del then Enter in one gesture"
+msgstr "删除：一键完成 Del 然后 Enter"
+
+msgid "Transfer manager"
+msgstr "传输管理器"
+
+msgid "Also mirrors the transfers of the native SFTP panel."
+msgstr "也镜像原生 SFTP 面板的传输。"
+
+msgid "Panel shown at the bottom of the sidebar."
+msgstr "显示在侧边栏底部的面板。"
+
+msgid "A command written once, usable everywhere it is attached."
+msgstr "命令写一次，附加到的任何地方都可用。"
+
+msgid "No snippets yet."
+msgstr "还没有片段。"
+
+msgid "{count} snippet(s) attached to nothing."
+msgstr "{count} 个片段未附加到任何内容。"
+
+msgid "Detached from the sidebar, they stay here until deleted."
+msgstr "从侧边栏分离后，它们会保留在此处直到被删除。"
+
+msgid "attached to {count} item(s)"
+msgstr "已附加到 {count} 项"
+
+msgid "attached nowhere"
+msgstr "未附加"
+
+msgid "Modify"
+msgstr "修改"
+
+msgid "New snippet"
+msgstr "新建片段"
+
+msgid "What the context menu shows."
+msgstr "右键菜单中显示的内容。"
+
+msgid "Restart nginx"
+msgstr "重启 nginx"
+
+msgid "Command"
+msgstr "命令"
+
+msgid "Use"
+msgstr "使用"
+
+msgid "for a required value, or"
+msgstr "表示必填值，或"
+
+msgid "for a default value."
+msgstr "表示默认值。"
+
+msgid "Changes the command on the {count} existing attachment(s)."
+msgstr "更改 {count} 个现有附件上的命令。"
+
+msgid "Delete the snippet \"{name}\"? It is attached to {count} item(s), which will lose it."
+msgstr "删除片段“{name}”？它已附加到 {count} 项，这些项将失去它。"
+
+msgid "Delete the snippet \"{name}\"?"
+msgstr "删除片段“{name}”？"
+
+msgid "The Tabby profile window has changed — profile creation and editing are unavailable in this version"
+msgstr "Tabby 配置窗口已更改——此版本中无法创建和编辑配置"
+
+msgid "The clipboard is empty."
+msgstr "剪贴板为空。"
+
+msgid "The clipboard content is too large to be a shared folder."
+msgstr "剪贴板内容过大，不可能是共享的文件夹。"
+
+msgid "The clipboard does not contain JSON — copy a folder from the sidebar first."
+msgstr "剪贴板中不含 JSON——请先从侧边栏复制一个文件夹。"
+
+msgid "The clipboard does not contain a shared folder."
+msgstr "剪贴板中不含共享的文件夹。"
+
+msgid "This JSON was not produced by \"Copy the structure\" from this sidebar."
+msgstr "此 JSON 并非由本侧边栏的“复制结构”生成。"
+
+msgid "This folder was exported by a newer version of the plugin (format {version})."
+msgstr "此文件夹由更新版本的插件导出（格式 {version}）。"
+
+msgid "This shared folder is incomplete: it contains no group."
+msgstr "此共享文件夹不完整：不包含任何分组。"
+
+msgid "{count, plural, =1 {# password} other {# passwords}}"
+msgstr "{count, plural, other {# 个密码}}"
+
+msgid "{count, plural, =1 {# login script} other {# login scripts}}"
+msgstr "{count, plural, other {# 个登录脚本}}"
+
+msgid "{count, plural, =1 {# vault key} other {# vault keys}}"
+msgstr "{count, plural, other {# 个保险库密钥}}"
+
+msgid "{count, plural, =1 {# key path} other {# key paths}}"
+msgstr "{count, plural, other {# 个密钥路径}}"
+
+msgid "{count, plural, =1 {# credential} other {# credentials and routes}}"
+msgstr "{count, plural, other {# 个凭据和路由}}"
+
+msgid "{count, plural, =1 {# sensitive field} other {# sensitive fields}}"
+msgstr "{count, plural, other {# 个敏感字段}}"
+
+msgid "{count, plural, =1 {# proxy command} other {# proxy commands}}"
+msgstr "{count, plural, other {# 个代理命令}}"
+
+msgid "{count, plural, =1 {# unrecognised option} other {# unrecognised options}}"
+msgstr "{count, plural, other {# 个无法识别的选项}}"
+
+msgid "{count, plural, =1 {# profile of an unsupported type} other {# profiles of an unsupported type}}"
+msgstr "{count, plural, other {# 个不受支持类型的配置}}"
+
+msgid "The clipboard content is too large to be an exported workspace."
+msgstr "剪贴板内容过大，不可能是导出的工作区。"
+
+msgid "The clipboard does not contain JSON — copy an exported workspace first."
+msgstr "剪贴板中不含 JSON——请先复制一个导出的工作区。"
+
+msgid "The clipboard does not contain an exported workspace."
+msgstr "剪贴板中不含导出的工作区。"
+
+msgid "This workspace was exported by a newer version of the plugin (format {version})."
+msgstr "此工作区由更新版本的插件导出（格式 {version}）。"
+
+msgid "This exported workspace is incomplete."
+msgstr "此导出的工作区不完整。"
+
+msgid "The SVG is empty."
+msgstr "SVG 为空。"
+
+msgid "SVG too large (limit: {limit} characters)."
+msgstr "SVG 过大（上限：{limit} 个字符）。"
+
+msgid "Invalid SVG, or entirely rejected by sanitisation."
+msgstr "无效的 SVG，或完全被清理过程拒绝。"
+
+msgid "The root must be a single <svg> tag."
+msgstr "根元素必须是单个 <svg> 标签。"
+
+msgid "{count} disallowed element(s) or attribute(s) removed."
+msgstr "已移除 {count} 个不允许的元素或属性。"
+
+msgid "Manage"
+msgstr "管理"
+
+msgid "More"
+msgstr "更多"
+
+msgid "Enhanced connection sidebar"
+msgstr "增强的连接侧边栏"
+
+msgid "Every block below can be switched off; the sidebar itself can too."
+msgstr "下面的每个区块都可以关闭；侧边栏本身也可以。"
+
+msgid "Open the project repository"
+msgstr "打开项目仓库"
+
+msgid "Open the author profile on GitHub"
+msgstr "在 GitHub 上打开作者主页"

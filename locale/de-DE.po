@@ -1,0 +1,1300 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Username"
+msgstr "Benutzername"
+
+msgid "Protocol"
+msgstr "Protokoll"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Host"
+msgstr "Host"
+
+msgid "Snippets"
+msgstr "Snippets"
+
+msgid "Better Sidebar"
+msgstr "Better Sidebar"
+
+msgid "SSH session lost ({tab}) — back to Profiles view"
+msgstr "SSH-Sitzung verloren ({tab}) — zurück zur Profilübersicht"
+
+msgid "SSH session lost — back to Profiles view"
+msgstr "SSH-Sitzung verloren — zurück zur Profilübersicht"
+
+msgid "No more active SSH session — back to Profiles view"
+msgstr "Keine aktive SSH-Sitzung mehr — zurück zur Profilübersicht"
+
+msgid "Frozen view — click to follow focus again"
+msgstr "Ansicht fixiert — klicken, um dem Fokus wieder zu folgen"
+
+msgid "Freeze view on this session"
+msgstr "Ansicht auf diese Sitzung fixieren"
+
+msgid "Waiting for an active SSH session."
+msgstr "Warten auf eine aktive SSH-Sitzung."
+
+msgid "Open an SSH profile — the panel will follow the selected tab."
+msgstr "Öffnen Sie ein SSH-Profil — das Panel folgt dem ausgewählten Tab."
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "File size"
+msgstr "Dateigröße"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Date modified"
+msgstr "Änderungsdatum"
+
+msgid "Perm."
+msgstr "Rechte"
+
+msgid "Permissions in octal (755)"
+msgstr "Berechtigungen in Oktalform (755)"
+
+msgid "Rights"
+msgstr "Modus"
+
+msgid "Permissions in long form (drwxr-xr-x)"
+msgstr "Berechtigungen in Langform (drwxr-xr-x)"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Item type"
+msgstr "Elementtyp"
+
+msgid "Ext."
+msgstr "Ext."
+
+msgid "File extension"
+msgstr "Dateierweiterung"
+
+msgid "Folders first"
+msgstr "Ordner zuerst"
+
+msgid "Show hidden files"
+msgstr "Versteckte Dateien anzeigen"
+
+msgid "Column borders"
+msgstr "Spaltenränder"
+
+msgid "Alternating rows"
+msgstr "Abwechselnde Zeilen"
+
+msgid "Destination folder for {name}"
+msgstr "Zielordner für {name}"
+
+msgid "Download here"
+msgstr "Hier herunterladen"
+
+msgid "{name} downloaded to {base}"
+msgstr "{name} nach {base} heruntergeladen"
+
+msgid "{name}: incomplete download"
+msgstr "{name}: unvollständiger Download"
+
+msgid "New file name"
+msgstr "Name der neuen Datei"
+
+msgid "The name cannot contain \"/\""
+msgstr "Der Name darf kein „/“ enthalten"
+
+msgid "{name} already exists"
+msgstr "{name} existiert bereits"
+
+msgid "Could not create {name}"
+msgstr "{name} konnte nicht erstellt werden"
+
+msgid "Could not follow the link {name}"
+msgstr "Der Verknüpfung {name} konnte nicht gefolgt werden"
+
+msgid "{name} points to a target that cannot be found"
+msgstr "{name} verweist auf ein nicht auffindbares Ziel"
+
+msgid "{name} → {target}"
+msgstr "{name} → {target}"
+
+msgid "Could not read the contents of {name}"
+msgstr "Der Inhalt von {name} konnte nicht gelesen werden"
+
+msgid "\"{name}\" contains more than {count} files ({size} at least). Everything will be downloaded before drag-and-drop becomes possible, with no progress and no way to cancel. Continue?"
+msgstr "„{name}“ enthält mehr als {count} Dateien (mindestens {size}). Alles wird heruntergeladen, bevor Ziehen-und-Ablegen möglich wird, ohne Fortschrittsanzeige und ohne Abbruchmöglichkeit. Fortfahren?"
+
+msgid "Download"
+msgstr "Herunterladen"
+
+msgid "Could not read what was dropped"
+msgstr "Das Abgelegte konnte nicht gelesen werden"
+
+msgid "{name} is not a folder — nothing was moved"
+msgstr "{name} ist kein Ordner — nichts wurde verschoben"
+
+msgid "{name} is not a folder — sending to {path}"
+msgstr "{name} ist kein Ordner — wird nach {path} gesendet"
+
+msgid "{names}, and {rest, plural, =1 {# more} other {# more}}"
+msgstr "{names} und {rest, plural, =1 {# weiterer} other {# weitere}}"
+
+msgid "{count} files already exist under {destination} and will be overwritten: {list}. Continue?"
+msgstr "{count} Dateien existieren bereits unter {destination} und werden überschrieben: {list}. Fortfahren?"
+
+msgid "A file already exists under {destination} and will be overwritten: {list}. Continue?"
+msgstr "Eine Datei existiert bereits unter {destination} und wird überschrieben: {list}. Fortfahren?"
+
+msgid "Overwrite"
+msgstr "Überschreiben"
+
+msgid "{sent, plural, =1 {# file} other {# files}} sent to {destination} ({folders, plural, =1 {# folder} other {# folders}})"
+msgstr "{sent, plural, =1 {# Datei gesendet} other {# Dateien gesendet}} an {destination} ({folders, plural, =1 {# Ordner} other {# Ordner}})"
+
+msgid "{sent, plural, =1 {# file} other {# files}} sent to {destination}"
+msgstr "{sent, plural, =1 {# Datei gesendet} other {# Dateien gesendet}} an {destination}"
+
+msgid "{folders, plural, =1 {# folder} other {# folders}} created in {destination}"
+msgstr "{folders, plural, =1 {# Ordner erstellt} other {# Ordner erstellt}} in {destination}"
+
+msgid "Could not send {failed, plural, =1 {# file} other {# files}} of {total}"
+msgstr "Senden von {failed, plural, =1 {# Datei} other {# Dateien}} von {total} fehlgeschlagen"
+
+msgid "Dragging folders out is disabled — enable it in Settings → Better Sidebar"
+msgstr "Ordner nach außen ziehen ist deaktiviert — aktivieren Sie es unter Einstellungen → Better Sidebar"
+
+msgid "{name} cannot be moved into itself"
+msgstr "{name} kann nicht in sich selbst verschoben werden"
+
+msgid "{name} already exists in {destination}"
+msgstr "{name} existiert bereits in {destination}"
+
+msgid "Could not move {name}: {error}"
+msgstr "{name} konnte nicht verschoben werden: {error}"
+
+msgid "{name} moved to {destination}"
+msgstr "{name} nach {destination} verschoben"
+
+msgid "Could not move {name} to {destination}"
+msgstr "{name} konnte nicht nach {destination} verschoben werden"
+
+msgid "{count} items moved to {destination}"
+msgstr "{count} Elemente nach {destination} verschoben"
+
+msgid "No move succeeded"
+msgstr "Keine Verschiebung war erfolgreich"
+
+msgid "{succeeded} moved, {failed} failed"
+msgstr "{succeeded} verschoben, {failed} fehlgeschlagen"
+
+msgid "Open with..."
+msgstr "Öffnen mit..."
+
+msgid "Rename..."
+msgstr "Umbenennen..."
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Delete selection ({count})"
+msgstr "Auswahl löschen ({count})"
+
+msgid "New name for \"{name}\""
+msgstr "Neuer Name für „{name}“"
+
+msgid "The name cannot contain \"/\" — this renames, it does not move"
+msgstr "Der Name darf kein „/“ enthalten — das benennt um, es verschiebt nicht"
+
+msgid "{name} already exists in this folder"
+msgstr "{name} existiert bereits in diesem Ordner"
+
+msgid "Could not rename {name}"
+msgstr "{name} konnte nicht umbenannt werden"
+
+msgid "{old} renamed to {new}"
+msgstr "{old} umbenannt in {new}"
+
+msgid "Delete folder \"{name}\" and everything in it?"
+msgstr "Ordner „{name}“ und seinen gesamten Inhalt löschen?"
+
+msgid "Confirm deletion of \"{name}\"?"
+msgstr "Löschen von „{name}“ bestätigen?"
+
+msgid "{name} deleted"
+msgstr "{name} gelöscht"
+
+msgid "Could not delete {name}"
+msgstr "{name} konnte nicht gelöscht werden"
+
+msgid "Delete {count} items? This action is irreversible."
+msgstr "{count} Elemente löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+
+msgid "{name}: {error}"
+msgstr "{name}: {error}"
+
+msgid "{count} items deleted"
+msgstr "{count} Elemente gelöscht"
+
+msgid "{succeeded} deleted, {failed} failed"
+msgstr "{succeeded} gelöscht, {failed} fehlgeschlagen"
+
+msgid "Link"
+msgstr "Verknüpfung"
+
+msgid "Folder"
+msgstr "Ordner"
+
+msgid "File"
+msgstr "Datei"
+
+msgid "Size: {size} ({bytes} bytes)"
+msgstr "Größe: {size} ({bytes} Bytes)"
+
+msgid "Modified: {date}"
+msgstr "Geändert: {date}"
+
+msgid "Permissions: {octal} — {long}"
+msgstr "Berechtigungen: {octal} — {long}"
+
+msgid "Type: {type}"
+msgstr "Typ: {type}"
+
+msgid "Symbolic link"
+msgstr "Symbolische Verknüpfung"
+
+msgid "Double-click to type a path"
+msgstr "Doppelklick, um einen Pfad einzugeben"
+
+msgid "Type the path by hand"
+msgstr "Pfad von Hand eingeben"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "Filter the list"
+msgstr "Liste filtern"
+
+msgid "New remote folder"
+msgstr "Neuer Remote-Ordner"
+
+msgid "Send files to the server"
+msgstr "Dateien an den Server senden"
+
+msgid "Send a folder to the server"
+msgstr "Ordner an den Server senden"
+
+msgid "Filter..."
+msgstr "Filtern..."
+
+msgid "Clear the filter"
+msgstr "Filter löschen"
+
+msgid "Connecting..."
+msgstr "Verbindung wird hergestellt..."
+
+msgid "Loading..."
+msgstr "Wird geladen..."
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Go up one level"
+msgstr "Eine Ebene nach oben"
+
+msgid "… {n} more items"
+msgstr "… {n} weitere Elemente"
+
+msgid "No file matches the filter."
+msgstr "Keine Datei entspricht dem Filter."
+
+msgid "Create a folder"
+msgstr "Ordner erstellen"
+
+msgid "Create a file"
+msgstr "Datei erstellen"
+
+msgid "Display settings"
+msgstr "Anzeigeeinstellungen"
+
+msgid "Columns"
+msgstr "Spalten"
+
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Note: {name}"
+msgstr "Notiz — {name}"
+
+msgid "Restart commands, maintenance reminders, ticket numbers…"
+msgstr "Neustartbefehle, Wartungserinnerungen, Ticketnummern…"
+
+msgid "Clearing the field removes the note."
+msgstr "Das Leeren des Felds entfernt die Notiz."
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Paste the folder: {name}"
+msgstr "Ordner einfügen — {name}"
+
+msgid "A folder named <strong>{name}</strong> already exists at the root."
+msgstr "Ein Ordner namens <strong>{name}</strong> existiert bereits im Stammverzeichnis."
+
+msgid "To paste: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "Einzufügen: {folders, plural, =1 {# Ordner} other {# Ordner}}, {profiles, plural, =1 {# Profil} other {# Profile}}."
+
+msgid "Removed from the export: {info}. Re-enter after pasting."
+msgstr "Aus dem Export entfernt: {info}. Nach dem Einfügen erneut eingeben."
+
+msgid "Paste alongside"
+msgstr "Daneben einfügen"
+
+msgid "A new folder \"{name}\". Nothing existing is touched."
+msgstr "Ein neuer Ordner „{name}“. Nichts Bestehendes wird verändert."
+
+msgid "Merge into the existing folder"
+msgstr "In den bestehenden Ordner zusammenführen"
+
+msgid "Profiles and subfolders added to \"{name}\". Duplicates are not detected."
+msgstr "Profile und Unterordner zu „{name}“ hinzugefügt. Duplikate werden nicht erkannt."
+
+msgid "Snippets: {name}"
+msgstr "Snippets — {name}"
+
+msgid "No snippets."
+msgstr "Keine Snippets."
+
+msgid "Variables and behaviour of this snippet here"
+msgstr "Variablen und Verhalten dieses Snippets hier"
+
+msgid "Remove from here: stays in the library"
+msgstr "Von hier entfernen — bleibt in der Bibliothek"
+
+msgid "Detach"
+msgstr "Lösen"
+
+msgid "Variables"
+msgstr "Variablen"
+
+msgid "Required, not filled in."
+msgstr "Erforderlich, nicht ausgefüllt."
+
+msgid "\"{value}\" contains a space and is not quoted. Write \"{token}\" in the command, or quote the value here."
+msgstr "„{value}“ enthält ein Leerzeichen und ist nicht in Anführungszeichen gesetzt. Schreiben Sie „{token}“ im Befehl, oder setzen Sie den Wert hier in Anführungszeichen."
+
+msgid "Behaviour"
+msgstr "Verhalten"
+
+msgid "On click"
+msgstr "Beim Klicken"
+
+msgid "Follow (run)"
+msgstr "Folgen (ausführen)"
+
+msgid "Follow (write)"
+msgstr "Folgen (schreiben)"
+
+msgid "Write without confirming"
+msgstr "Schreiben ohne Bestätigung"
+
+msgid "Write and run"
+msgstr "Schreiben und ausführen"
+
+msgid "Without a session"
+msgstr "Ohne Sitzung"
+
+msgid "Follow (launch)"
+msgstr "Folgen (starten)"
+
+msgid "Follow (do nothing)"
+msgstr "Folgen (nichts tun)"
+
+msgid "Do nothing"
+msgstr "Nichts tun"
+
+msgid "Launch the session"
+msgstr "Sitzung starten"
+
+msgid "Wait"
+msgstr "Wartezeit"
+
+msgid "to fill in"
+msgstr "auszufüllen"
+
+msgid "follow"
+msgstr "folgen"
+
+msgid "Inherited"
+msgstr "Geerbt"
+
+msgid "Reactivate here"
+msgstr "Hier reaktivieren"
+
+msgid "No longer offer here: stays attached to the folder"
+msgstr "Hier nicht mehr anbieten — bleibt mit dem Ordner verknüpft"
+
+msgid "Reactivate"
+msgstr "Reaktivieren"
+
+msgid "Disable here"
+msgstr "Hier deaktivieren"
+
+msgid "Available snippets"
+msgstr "Verfügbare Snippets"
+
+msgid "Attach here"
+msgstr "Hier verknüpfen"
+
+msgid "Attach"
+msgstr "Verknüpfen"
+
+msgid "Inherit (run)"
+msgstr "Erben (ausführen)"
+
+msgid "Inherit (write)"
+msgstr "Erben (schreiben)"
+
+msgid "Inherit (launch)"
+msgstr "Erben (starten)"
+
+msgid "Inherit (do nothing)"
+msgstr "Erben (nichts tun)"
+
+msgid "Inherited from the content of the folder."
+msgstr "Geerbt vom Inhalt des Ordners."
+
+msgid "Manage the library"
+msgstr "Bibliothek verwalten"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Transfers"
+msgstr "Übertragungen"
+
+msgid "Clear the list — running transfers will be cancelled"
+msgstr "Liste leeren — laufende Übertragungen werden abgebrochen"
+
+msgid "Transfer finished — the system is still placing the file at its destination. The shown duration is an estimate: nothing signals when this copy ends."
+msgstr "Übertragung abgeschlossen — das System legt die Datei noch am Ziel ab. Die angezeigte Dauer ist geschätzt: Nichts meldet das Ende dieser Kopie."
+
+msgid "handing over to the system…"
+msgstr "Übergabe an das System…"
+
+msgid "cancelled"
+msgstr "abgebrochen"
+
+msgid "interrupted at {percent} %"
+msgstr "unterbrochen bei {percent} %"
+
+msgid "incomplete at destination"
+msgstr "unvollständig am Ziel"
+
+msgid "Estimated time remaining"
+msgstr "Geschätzte Restzeit"
+
+msgid "Elapsed time"
+msgstr "Verstrichene Zeit"
+
+msgid "Cancel this transfer and remove it"
+msgstr "Diese Übertragung abbrechen und entfernen"
+
+msgid "Remove from the list"
+msgstr "Aus der Liste entfernen"
+
+msgid "Cancel \"{name}\" while it is running?"
+msgstr "Laufende Übertragung „{name}“ abbrechen?"
+
+msgid "Cancel the transfer"
+msgstr "Übertragung abbrechen"
+
+msgid "One transfer is still running. Clearing the list will cancel it. Continue?"
+msgstr "Eine Übertragung läuft noch. Das Leeren der Liste bricht sie ab. Fortfahren?"
+
+msgid "{count} transfers are still running. Clearing the list will cancel them. Continue?"
+msgstr "{count} Übertragungen laufen noch. Das Leeren der Liste bricht sie ab. Fortfahren?"
+
+msgid "Clear and cancel"
+msgstr "Leeren und abbrechen"
+
+msgid "Session: {label}"
+msgstr "Sitzung: {label}"
+
+msgid "{count} running"
+msgstr "{count} aktiv"
+
+msgid "{count, plural, =1 {# finished} other {# finished}}"
+msgstr "{count, plural, =1 {# abgeschlossen} other {# abgeschlossen}}"
+
+msgid "{count, plural, =1 {# cancelled} other {# cancelled}}"
+msgstr "{count, plural, =1 {# abgebrochen} other {# abgebrochen}}"
+
+msgid "{count, plural, =1 {# interrupted} other {# interrupted}}"
+msgstr "{count, plural, =1 {# unterbrochen} other {# unterbrochen}}"
+
+msgid "{count, plural, =1 {# incomplete at destination} other {# incomplete at destination}}"
+msgstr "{count, plural, =1 {# unvollständig am Ziel} other {# unvollständig am Ziel}}"
+
+msgid "Profiles"
+msgstr "Profile"
+
+msgid "SFTP of the active session"
+msgstr "SFTP der aktiven Sitzung"
+
+msgid "Active sessions"
+msgstr "Aktive Sitzungen"
+
+msgid "Open the SFTP of this session"
+msgstr "SFTP dieser Sitzung öffnen"
+
+msgid "Recently launched"
+msgstr "Zuletzt verwendet"
+
+msgid "Active tunnels"
+msgstr "Aktive Tunnel"
+
+msgid "resuming…"
+msgstr "Wiederaufnahme…"
+
+msgid "not restored"
+msgstr "nicht wiederhergestellt"
+
+msgid "Open {url} in the browser"
+msgstr "{url} im Browser öffnen"
+
+msgid "Go to the session"
+msgstr "Zur Sitzung wechseln"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "New workspace"
+msgstr "Neuer Arbeitsbereich"
+
+msgid "Filter (Ctrl+F)"
+msgstr "Filtern (Strg+F)"
+
+msgid "Hidden items in this workspace"
+msgstr "Ausgeblendete Elemente in diesem Arbeitsbereich"
+
+msgid "{count, plural, =1 {# profile selected} other {# profiles selected}}"
+msgstr "{count, plural, =1 {# Profil ausgewählt} other {# Profile ausgewählt}}"
+
+msgid "Clear the selection"
+msgstr "Auswahl aufheben"
+
+msgid "Drag the selection, or right-click the destination folder"
+msgstr "Auswahl ziehen oder Zielordner mit Rechtsklick wählen"
+
+msgid "No hidden items in this workspace."
+msgstr "Keine ausgeblendeten Elemente in diesem Arbeitsbereich."
+
+msgid "Show again"
+msgstr "Wieder anzeigen"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgid "No session"
+msgstr "Keine Sitzung"
+
+msgid "{count} tunnel(s) mounted on this session"
+msgstr "{count} Tunnel auf dieser Sitzung aktiv"
+
+msgid "{count} tunnel(s) configured: mounted when the session launches"
+msgstr "{count} Tunnel konfiguriert: werden beim Sitzungsstart aufgebaut"
+
+msgid "Upload in progress"
+msgstr "Upload läuft"
+
+msgid "Download in progress"
+msgstr "Download läuft"
+
+msgid "Move the selection here ({count})"
+msgstr "Auswahl hierher verschieben ({count})"
+
+msgid "Launch all sessions"
+msgstr "Alle Sitzungen starten"
+
+msgid "Edit the note..."
+msgstr "Notiz bearbeiten..."
+
+msgid "Add a note..."
+msgstr "Notiz hinzufügen..."
+
+msgid "Remove from favorites"
+msgstr "Aus Favoriten entfernen"
+
+msgid "Add to favorites"
+msgstr "Zu Favoriten hinzufügen"
+
+msgid "New folder..."
+msgstr "Neuer Ordner..."
+
+msgid "New profile..."
+msgstr "Neues Profil..."
+
+msgid "Change the icon..."
+msgstr "Symbol ändern..."
+
+msgid "Copy the structure (JSON)"
+msgstr "Struktur kopieren (JSON)"
+
+msgid "Copy without credentials"
+msgstr "Ohne Zugangsdaten kopieren"
+
+msgid "Hide in this workspace"
+msgstr "In diesem Arbeitsbereich ausblenden"
+
+msgid "Paste the folder"
+msgstr "Gruppe einfügen"
+
+msgid "Profile tunnels..."
+msgstr "Profil-Tunnel..."
+
+msgid "Edit..."
+msgstr "Bearbeiten..."
+
+msgid "Duplicate"
+msgstr "Duplizieren"
+
+msgid "Choose an icon"
+msgstr "Symbol wählen"
+
+msgid "Remove the icon"
+msgstr "Symbol entfernen"
+
+msgid "Favorites"
+msgstr "Favoriten"
+
+msgid "Right-click an icon: \"Add to favorites\""
+msgstr "Rechtsklick auf ein Symbol → „Zu Favoriten hinzufügen“"
+
+msgid "Recently used"
+msgstr "Zuletzt benutzt"
+
+msgid "Search (e.g. server, folder, star...)"
+msgstr "Suchen (z. B. server, folder, star...)"
+
+msgid "Import from an SVG..."
+msgstr "Aus einem SVG importieren..."
+
+msgid "Apply the SVG"
+msgstr "SVG anwenden"
+
+msgid "Default variant"
+msgstr "Standardvariante"
+
+msgid "Light variant"
+msgstr "Helle Variante"
+
+msgid "Dark variant"
+msgstr "Dunkle Variante"
+
+msgid "Rename"
+msgstr "Umbenennen"
+
+msgid "New folder"
+msgstr "Neuer Ordner"
+
+msgid "Folder name"
+msgstr "Ordnername"
+
+msgid "Create"
+msgstr "Erstellen"
+
+msgid "Tunnels: {name}"
+msgstr "Tunnel — {name}"
+
+msgid "No tunnels configured on this profile."
+msgstr "Keine Tunnel für dieses Profil konfiguriert."
+
+msgid "Double-click to edit this tunnel"
+msgstr "Doppelklick, um diesen Tunnel zu bearbeiten"
+
+msgid "Delete this tunnel"
+msgstr "Diesen Tunnel löschen"
+
+msgid "This tunnel is currently mounted on the open session. Deleting it here would remove its configuration without cutting the tunnel, which would keep running until the session closes. Close the session to be able to delete it."
+msgstr "Dieser Tunnel ist auf der offenen Sitzung aktiv. Ihn hier zu löschen würde nur seine Konfiguration entfernen, ohne den Tunnel zu trennen — er liefe bis zum Ende der Sitzung weiter. Schließen Sie die Sitzung, um ihn löschen zu können."
+
+msgid "Listening port"
+msgstr "Abhörport"
+
+msgid "Target host"
+msgstr "Zielhost"
+
+msgid "Target port"
+msgstr "Zielport"
+
+msgid "Description (optional)"
+msgstr "Beschreibung (optional)"
+
+msgid "Add the tunnel"
+msgstr "Tunnel hinzufügen"
+
+msgid "Takes effect at the next session launch."
+msgstr "Wird beim nächsten Start der Sitzung wirksam."
+
+msgid "New profile"
+msgstr "Neues Profil"
+
+msgid "Delete the profile"
+msgstr "Profil löschen"
+
+msgid "Delete \"{name}\"? This action is irreversible."
+msgstr "„{name}“ löschen? Diese Aktion ist unwiderruflich."
+
+msgid "Icon..."
+msgstr "Symbol..."
+
+msgid "Color..."
+msgstr "Farbe..."
+
+msgid "Copy (JSON)"
+msgstr "Kopieren (JSON)"
+
+msgid "Manage this workspace"
+msgstr "Diesen Arbeitsbereich verwalten"
+
+msgid "New workspace..."
+msgstr "Neuer Arbeitsbereich..."
+
+msgid "Workspace name"
+msgstr "Name des Arbeitsbereichs"
+
+msgid "Import from the clipboard"
+msgstr "Aus der Zwischenablage importieren"
+
+msgid "Rename the workspace"
+msgstr "Arbeitsbereich umbenennen"
+
+msgid "Workspace color"
+msgstr "Farbe des Arbeitsbereichs"
+
+msgid "Remove the color"
+msgstr "Farbe entfernen"
+
+msgid "Delete the workspace"
+msgstr "Arbeitsbereich löschen"
+
+msgid "Delete \"{name}\"? Hidden profiles and folders become visible everywhere else. This action is irreversible."
+msgstr "„{name}“ löschen? Ausgeblendete Profile und Ordner werden überall sonst wieder sichtbar. Diese Aktion ist unwiderruflich."
+
+msgid "Better Sidebar settings"
+msgstr "Better-Sidebar-Einstellungen"
+
+msgid "Variables to fill in on \"{name}\""
+msgstr "Auszufüllende Variablen bei „{name}“"
+
+msgid "{detail}: right-click the profile, \"Snippets\", then the snippet settings button."
+msgstr "{detail}: Rechtsklick auf das Profil, „Snippets…“, dann die Einstellungen des Snippets."
+
+msgid "This folder contains no profile to launch"
+msgstr "Dieser Ordner enthält kein startbares Profil"
+
+msgid "The clipboard does not hold an exported workspace."
+msgstr "Die Zwischenablage enthält keinen exportierten Arbeitsbereich."
+
+msgid "Imported workspace"
+msgstr "Importierter Arbeitsbereich"
+
+msgid "Workspace \"{name}\" imported."
+msgstr "Arbeitsbereich „{name}“ importiert."
+
+msgid "Workspace \"{name}\" copied."
+msgstr "Arbeitsbereich „{name}“ kopiert."
+
+msgid "Pinned"
+msgstr "Angeheftet"
+
+msgid "\"{name}\" expects a value"
+msgstr "„{name}“ erwartet einen Wert"
+
+msgid "{list}: to fill in under \"Snippets\"."
+msgstr "{list}: unter „Snippets…“ auszufüllen."
+
+msgid "\"{name}\" has no open session"
+msgstr "„{name}“ hat keine offene Sitzung"
+
+msgid "The session of \"{name}\" did not open"
+msgstr "Die Sitzung von „{name}“ wurde nicht geöffnet"
+
+msgid "Transfers: {count} running, total speed {speed}"
+msgstr "Übertragungen: {count} laufend, Gesamtgeschwindigkeit {speed}"
+
+msgid "Transfers: {count} running"
+msgstr "Übertragungen: {count} laufend"
+
+msgid "{d}d {h}h"
+msgstr "{d}T {h}h"
+
+msgid "{d} d {h} h"
+msgstr "{d} T {h} h"
+
+msgid "{detail}: session cut, tunnel waiting to resume"
+msgstr "{detail}: Sitzung getrennt, Tunnel wartet auf Wiederaufnahme"
+
+msgid "{detail}: not restored after the reconnection. Only the tunnels saved in the profile are remounted; a tunnel added on the fly disappears with its session."
+msgstr "{detail}: nach der Wiederverbindung nicht wiederhergestellt. Nur im Profil gespeicherte Tunnel werden neu aufgebaut; ein spontan hinzugefügter Tunnel verschwindet mit der Sitzung."
+
+msgid "Tunnel {detail} already mounted by {owner}: duplicate dismounted ({session})"
+msgstr "Tunnel {detail} bereits von {owner} aufgebaut: Duplikat abgebaut ({session})"
+
+msgid "Listens on the remote server. The destination is resolved from your PC."
+msgstr "Lauscht auf dem entfernten Server. Das Ziel wird von Ihrem PC aus aufgelöst."
+
+msgid "Opens a SOCKS proxy on your PC, with no fixed destination."
+msgstr "Öffnet einen SOCKS-Proxy auf Ihrem PC, ohne festes Ziel."
+
+msgid "Listens on your PC. The destination is resolved from the server, so \"localhost\" there means the server."
+msgstr "Lauscht auf Ihrem PC. Das Ziel wird vom Server aus aufgelöst — „localhost“ meint dort also den Server."
+
+msgid "Enter a listening port."
+msgstr "Geben Sie einen Abhörport an."
+
+msgid "Enter the destination host and port."
+msgstr "Geben Sie Zielhost und Zielport an."
+
+msgid "Tunnel updated"
+msgstr "Tunnel geändert"
+
+msgid "Tunnel saved"
+msgstr "Tunnel gespeichert"
+
+msgid "The current session keeps the old one until it is relaunched."
+msgstr "Die laufende Sitzung behält den alten, bis sie neu gestartet wird."
+
+msgid "It will be mounted at the next launch of this session."
+msgstr "Er wird beim nächsten Start dieser Sitzung aufgebaut."
+
+msgid "This tunnel is mounted on the current session. Close the session to be able to delete it."
+msgstr "Dieser Tunnel ist auf der laufenden Sitzung aktiv. Schließen Sie die Sitzung, um ihn löschen zu können."
+
+msgid "No group"
+msgstr "Ohne Gruppe"
+
+msgid "{count} profiles moved to \"{where}\""
+msgstr "{count} Profile nach „{where}“ verschoben"
+
+msgid "Profile moved to \"{where}\""
+msgstr "Profil nach „{where}“ verschoben"
+
+msgid "Moving the folder failed"
+msgstr "Das Verschieben des Ordners ist fehlgeschlagen"
+
+msgid "SVG rejected."
+msgstr "SVG abgelehnt."
+
+msgid "No provider handles \"{name}\": opening the settings"
+msgstr "Kein Anbieter verwaltet „{name}“: Einstellungen werden geöffnet"
+
+msgid "{name} - Copy"
+msgstr "{name} - Kopie"
+
+msgid "Folder \"{name}\" copied: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "Ordner „{name}“ kopiert: {folders, plural, =1 {# Ordner} other {# Ordner}}, {profiles, plural, =1 {# Profil} other {# Profile}}."
+
+msgid "Removed: {purged}."
+msgstr "Entfernt: {purged}."
+
+msgid "The clipboard does not hold a shared folder."
+msgstr "Die Zwischenablage enthält keinen geteilten Ordner."
+
+msgid "Pasted folder"
+msgstr "Eingefügter Ordner"
+
+msgid "Folder \"{name}\" pasted: {folders, plural, =1 {# folder} other {# folders}}, {profiles, plural, =1 {# profile} other {# profiles}}."
+msgstr "Ordner „{name}“ eingefügt: {folders, plural, =1 {# Ordner} other {# Ordner}}, {profiles, plural, =1 {# Profil} other {# Profile}}."
+
+msgid "Removed at export: {purged}. To be re-entered."
+msgstr "Beim Export entfernt: {purged}. Muss neu eingegeben werden."
+
+msgid "{count, plural, =1 {Profile type not installed} other {Profile types not installed}}: {list}."
+msgstr "{count, plural, =1 {Nicht installierter Profiltyp} other {Nicht installierte Profiltypen}}: {list}."
+
+msgid "This JSON still carried secrets its own header declared removed."
+msgstr "Dieses JSON enthielt noch Geheimnisse, die sein eigener Kopf als entfernt deklarierte."
+
+msgid "Removed at paste: {purged}."
+msgstr "Beim Einfügen entfernt: {purged}."
+
+msgid "{count, plural, =1 {# subfolder} other {# subfolders}}"
+msgstr "{count, plural, =1 {# Unterordner} other {# Unterordner}}"
+
+msgid "{count, plural, =1 {# profile} other {# profiles}}"
+msgstr "{count, plural, =1 {# Profil} other {# Profile}}"
+
+msgid "{a} and {b}"
+msgstr "{a} und {b}"
+
+msgid "current"
+msgstr "aktuell"
+
+msgid "This content is hidden in the workspace \"{name}\"."
+msgstr "Dieser Inhalt ist im Arbeitsbereich „{name}“ ausgeblendet."
+
+msgid "Cannot delete \"{name}\""
+msgstr "„{name}“ kann nicht gelöscht werden"
+
+msgid "This folder still contains {reasons}.{hint} Empty it first."
+msgstr "Dieser Ordner enthält noch {reasons}.{hint} Leeren Sie ihn zuerst."
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Features"
+msgstr "Funktionen"
+
+msgid "Show the sidebar"
+msgstr "Sidebar anzeigen"
+
+msgid "Removes the sidebar without uninstalling anything."
+msgstr "Entfernt die Sidebar, ohne etwas zu deinstallieren."
+
+msgid "Untick to hide it; this page stays reachable."
+msgstr "Abwählen, um sie auszublenden; diese Seite bleibt erreichbar."
+
+msgid "Hide the Tabby transfers menu"
+msgstr "Das Übertragungsmenü von Tabby ausblenden"
+
+msgid "Otherwise the native Tabby menu opens on every transfer."
+msgstr "Sonst öffnet sich das native Tabby-Menü bei jeder Übertragung."
+
+msgid "The sidebar panel already shows the same transfers."
+msgstr "Das Sidebar-Panel zeigt dieselben Übertragungen bereits an."
+
+msgid "Each block switches on independently. Nothing is deleted by turning one off."
+msgstr "Jeder Block lässt sich unabhängig aktivieren. Beim Ausschalten wird nichts gelöscht."
+
+msgid "Mirrors the state of Tabby port forwarding."
+msgstr "Spiegelt den Stand der Portweiterleitung von Tabby."
+
+msgid "Port forwarding panel and badges on the profiles."
+msgstr "Panel der Portweiterleitungen und Markierungen an den Profilen."
+
+msgid "Unavailable on this version of Tabby. Your setting is kept."
+msgstr "In dieser Tabby-Version nicht verfügbar. Ihre Einstellung bleibt erhalten."
+
+msgid "Workspaces"
+msgstr "Arbeitsbereiche"
+
+msgid "\"All\" excludes nothing; the filter bar searches everywhere."
+msgstr "„Alle“ schließt nichts aus; die Filterleiste sucht überall."
+
+msgid "Workspace bar, above the list."
+msgstr "Leiste der Arbeitsbereiche, über der Liste."
+
+msgid "Presentation"
+msgstr "Darstellung"
+
+msgid "Tabs or a compact list, as you prefer."
+msgstr "Tabs oder kompakte Liste, nach Wahl."
+
+msgid "Changes how the workspace bar is displayed."
+msgstr "Ändert die Darstellung der Arbeitsbereichsleiste."
+
+msgid "Tabs (wrap onto new lines)"
+msgstr "Tabs (umbrechen in neue Zeilen)"
+
+msgid "Dropdown list"
+msgstr "Aufklappliste"
+
+msgid "Filter bar"
+msgstr "Filterleiste"
+
+msgid "Searches the name, description, host and username."
+msgstr "Durchsucht Name, Beschreibung, Host und Benutzer."
+
+msgid "Search field and shortcut"
+msgstr "Suchfeld und Tastenkürzel"
+
+msgid "A library of commands attached to profiles and folders."
+msgstr "Bibliothek von Befehlen, die an Profile und Ordner angehängt sind."
+
+msgid "The \"Snippets\" entry of the right click and its dedicated tab."
+msgstr "Eintrag „Snippets…“ im Rechtsklickmenü und eigener Tab."
+
+msgid "Notes"
+msgstr "Notizen"
+
+msgid "A free-form memo per profile or folder."
+msgstr "Eine freie Notiz je Profil oder Ordner."
+
+msgid "The \"note\" entry of the right click and its badge."
+msgstr "Eintrag „Notiz“ im Rechtsklickmenü und zugehörige Markierung."
+
+msgid "Recent profiles"
+msgstr "Zuletzt verwendete Profile"
+
+msgid "The 5 most recently launched profiles, all types together."
+msgstr "Die 5 zuletzt gestarteten Profile, über alle Typen hinweg."
+
+msgid "A list shown under the active sessions."
+msgstr "Liste unter den aktiven Sitzungen."
+
+msgid "One row per pane, not per tab."
+msgstr "Eine Zeile je Teilfenster, nicht je Tab."
+
+msgid "Open SSH connections, at the top of the sidebar."
+msgstr "Offene SSH-Verbindungen, oben in der Sidebar."
+
+msgid "Latency probe, in seconds"
+msgstr "Latenzmessung, in Sekunden"
+
+msgid "A real SFTP round trip, not an ICMP ping."
+msgstr "Echter SFTP-Umlauf, kein ICMP-Ping."
+
+msgid "Colors the dot of each session. 0 disables."
+msgstr "Färbt den Punkt jeder Sitzung. 0 deaktiviert."
+
+msgid "SFTP view"
+msgstr "SFTP-Ansicht"
+
+msgid "One SFTP channel per session actually browsed."
+msgstr "Ein SFTP-Kanal je tatsächlich durchsuchter Sitzung."
+
+msgid "The SFTP tab of the sidebar and its panel."
+msgstr "SFTP-Tab der Sidebar und sein Panel."
+
+msgid "Remote file editor"
+msgstr "Editor für entfernte Dateien"
+
+msgid "The file is copied, edited, then sent back to the server."
+msgstr "Die Datei wird kopiert, bearbeitet und dann zum Server zurückgeschickt."
+
+msgid "Program opened on double-click. Empty, Windows decides."
+msgstr "Programm für den Doppelklick. Leer entscheidet Windows."
+
+msgid "No editor chosen"
+msgstr "Kein Editor gewählt"
+
+msgid "Browse..."
+msgstr "Durchsuchen..."
+
+msgid "Erase"
+msgstr "Leeren"
+
+msgid "Drag a folder out to Explorer"
+msgstr "Einen Ordner in den Explorer ziehen"
+
+msgid "The folder is downloaded in full before the drop."
+msgstr "Der Ordner wird vor dem Ablegen vollständig heruntergeladen."
+
+msgid "Beyond 25 files or 20 MB, confirmation is asked."
+msgstr "Ab 25 Dateien oder 20 MB wird eine Bestätigung verlangt."
+
+msgid "Automatic refresh, in seconds"
+msgstr "Automatische Aktualisierung, in Sekunden"
+
+msgid "Only changed entries are redrawn."
+msgstr "Nur geänderte Einträge werden neu gezeichnet."
+
+msgid "0 disables; every cycle re-reads the folder."
+msgstr "0 deaktiviert; jeder Zyklus liest den Ordner neu."
+
+msgid "Return to Profiles when no SSH session is open any more"
+msgstr "Zu Profilen zurückkehren, wenn keine SSH-Sitzung mehr offen ist"
+
+msgid "Also covers the waiting screen of the SFTP panel."
+msgstr "Deckt auch den Wartebildschirm des SFTP-Panels ab."
+
+msgid "Waits for the grace period of the displayed session to end."
+msgstr "Wartet das Ende der Gnadenfrist der angezeigten Sitzung ab."
+
+msgid "Deletion: button activated by Enter"
+msgstr "Löschen: mit Eingabetaste bestätigte Schaltfläche"
+
+msgid "No deletion can be undone afterwards."
+msgstr "Kein Löschen lässt sich nachträglich rückgängig machen."
+
+msgid "Applies to"
+msgstr "Gilt für"
+
+msgid "and to the right click."
+msgstr "und für den Rechtsklick."
+
+msgid "always cancels."
+msgstr "bricht immer ab."
+
+msgid "Del"
+msgstr "Entf"
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel: the safe answer (default)"
+msgstr "Abbrechen: die sichere Antwort (Standard)"
+
+msgid "Delete: Del then Enter in one gesture"
+msgstr "Löschen: Entf und dann Eingabe in einem Zug"
+
+msgid "Transfer manager"
+msgstr "Übertragungsmanager"
+
+msgid "Also mirrors the transfers of the native SFTP panel."
+msgstr "Spiegelt auch die Übertragungen des nativen SFTP-Panels."
+
+msgid "Panel shown at the bottom of the sidebar."
+msgstr "Panel unten in der Sidebar."
+
+msgid "A command written once, usable everywhere it is attached."
+msgstr "Ein einmal geschriebener Befehl, nutzbar überall, wo er angehängt ist."
+
+msgid "No snippets yet."
+msgstr "Noch keine Snippets."
+
+msgid "{count} snippet(s) attached to nothing."
+msgstr "{count} Snippet(s) an nichts angehängt."
+
+msgid "Detached from the sidebar, they stay here until deleted."
+msgstr "Von der Sidebar gelöst, bleiben sie hier bis zur Löschung."
+
+msgid "attached to {count} item(s)"
+msgstr "an {count} Element(e) angehängt"
+
+msgid "attached nowhere"
+msgstr "nirgends angehängt"
+
+msgid "Modify"
+msgstr "Bearbeiten"
+
+msgid "New snippet"
+msgstr "Neues Snippet"
+
+msgid "What the context menu shows."
+msgstr "Was das Kontextmenü anzeigt."
+
+msgid "Restart nginx"
+msgstr "nginx neu starten"
+
+msgid "Command"
+msgstr "Befehl"
+
+msgid "Use"
+msgstr "Verwenden Sie"
+
+msgid "for a required value, or"
+msgstr "für einen Pflichtwert oder"
+
+msgid "for a default value."
+msgstr "für einen Standardwert."
+
+msgid "Changes the command on the {count} existing attachment(s)."
+msgstr "Ändert den Befehl an den {count} bestehenden Anhängen."
+
+msgid "Delete the snippet \"{name}\"? It is attached to {count} item(s), which will lose it."
+msgstr "„{name}“ löschen? Es ist an {count} Element(e) angehängt, die es verlieren."
+
+msgid "Delete the snippet \"{name}\"?"
+msgstr "„{name}“ löschen?"
+
+msgid "The Tabby profile window has changed — profile creation and editing are unavailable in this version"
+msgstr "Das Profilfenster von Tabby hat sich geändert — in dieser Version können keine Profile erstellt oder bearbeitet werden"
+
+msgid "The clipboard is empty."
+msgstr "Die Zwischenablage ist leer."
+
+msgid "The clipboard content is too large to be a shared folder."
+msgstr "Der Inhalt der Zwischenablage ist zu groß, um ein geteilter Ordner zu sein."
+
+msgid "The clipboard does not contain JSON — copy a folder from the sidebar first."
+msgstr "Die Zwischenablage enthält kein JSON — kopieren Sie zuerst einen Ordner aus der Seitenleiste."
+
+msgid "The clipboard does not contain a shared folder."
+msgstr "Die Zwischenablage enthält keinen geteilten Ordner."
+
+msgid "This JSON was not produced by \"Copy the structure\" from this sidebar."
+msgstr "Dieses JSON wurde nicht von „Struktur kopieren\" in dieser Seitenleiste erzeugt."
+
+msgid "This folder was exported by a newer version of the plugin (format {version})."
+msgstr "Dieser Ordner wurde von einer neueren Version des Plugins exportiert (Format {version})."
+
+msgid "This shared folder is incomplete: it contains no group."
+msgstr "Dieser geteilte Ordner ist unvollständig: er enthält keine Gruppe."
+
+msgid "{count, plural, =1 {# password} other {# passwords}}"
+msgstr "{count, plural, =1 {# Passwort} other {# Passwörter}}"
+
+msgid "{count, plural, =1 {# login script} other {# login scripts}}"
+msgstr "{count, plural, =1 {# Login-Skript} other {# Login-Skripte}}"
+
+msgid "{count, plural, =1 {# vault key} other {# vault keys}}"
+msgstr "{count, plural, =1 {# Tresor-Schlüssel} other {# Tresor-Schlüssel}}"
+
+msgid "{count, plural, =1 {# key path} other {# key paths}}"
+msgstr "{count, plural, =1 {# Schlüsselpfad} other {# Schlüsselpfade}}"
+
+msgid "{count, plural, =1 {# credential} other {# credentials and routes}}"
+msgstr "{count, plural, =1 {# Zugangsdaten-Eintrag} other {# Zugangsdaten und Routen}}"
+
+msgid "{count, plural, =1 {# sensitive field} other {# sensitive fields}}"
+msgstr "{count, plural, =1 {# sensibles Feld} other {# sensible Felder}}"
+
+msgid "{count, plural, =1 {# proxy command} other {# proxy commands}}"
+msgstr "{count, plural, =1 {# Proxy-Befehl} other {# Proxy-Befehle}}"
+
+msgid "{count, plural, =1 {# unrecognised option} other {# unrecognised options}}"
+msgstr "{count, plural, =1 {# unbekannte Option} other {# unbekannte Optionen}}"
+
+msgid "{count, plural, =1 {# profile of an unsupported type} other {# profiles of an unsupported type}}"
+msgstr "{count, plural, =1 {# Profil eines nicht unterstützten Typs} other {# Profile eines nicht unterstützten Typs}}"
+
+msgid "The clipboard content is too large to be an exported workspace."
+msgstr "Der Inhalt der Zwischenablage ist zu groß, um ein exportierter Workspace zu sein."
+
+msgid "The clipboard does not contain JSON — copy an exported workspace first."
+msgstr "Die Zwischenablage enthält kein JSON — kopieren Sie zuerst einen exportierten Workspace."
+
+msgid "The clipboard does not contain an exported workspace."
+msgstr "Die Zwischenablage enthält keinen exportierten Workspace."
+
+msgid "This workspace was exported by a newer version of the plugin (format {version})."
+msgstr "Dieser Workspace wurde von einer neueren Version des Plugins exportiert (Format {version})."
+
+msgid "This exported workspace is incomplete."
+msgstr "Dieser exportierte Workspace ist unvollständig."
+
+msgid "The SVG is empty."
+msgstr "Das SVG ist leer."
+
+msgid "SVG too large (limit: {limit} characters)."
+msgstr "SVG zu groß (Grenze: {limit} Zeichen)."
+
+msgid "Invalid SVG, or entirely rejected by sanitisation."
+msgstr "Ungültiges SVG oder vollständig durch die Bereinigung verworfen."
+
+msgid "The root must be a single <svg> tag."
+msgstr "Die Wurzel muss ein einzelnes <svg>-Tag sein."
+
+msgid "{count} disallowed element(s) or attribute(s) removed."
+msgstr "{count} nicht zulässige(s) Element(e) oder Attribut(e) entfernt."
+
+msgid "Manage"
+msgstr "Verwalten"
+
+msgid "More"
+msgstr "Weitere"
+
+msgid "Enhanced connection sidebar"
+msgstr "Erweiterte Verbindungs-Seitenleiste"
+
+msgid "Every block below can be switched off; the sidebar itself can too."
+msgstr "Jeder Block unten lässt sich abschalten, die Seitenleiste selbst ebenfalls."
+
+msgid "Open the project repository"
+msgstr "Projekt-Repository öffnen"
+
+msgid "Open the author profile on GitHub"
+msgstr "Autorenprofil auf GitHub öffnen"
