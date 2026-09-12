@@ -507,7 +507,82 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         private injector: Injector,
         private transfers: SidebarPlusTransfersService,
         private i18n: SidebarPlusI18nService,
+        private elementRef: ElementRef<HTMLElement>,
     ) { }
+
+    /**
+     * Reads the background plugin's transparency settings (if installed) and
+     * mirrors them onto this sidebar via CSS variables. This keeps the two
+     * plugins decoupled: background never has to know about sidebar-plus, and
+     * sidebar-plus opt-in to the background plugin's sliders on its own terms.
+     *
+     * Safe to call when the background plugin is absent — `backgroundPlugin`
+     * is simply undefined on the store, and both custom properties fall back
+     * to their SCSS defaults.
+     */
+    private applyBackgroundTransparency (): void {
+        const host = this.elementRef.nativeElement
+        const bg = (this.config.store as { backgroundPlugin?: {
+            backgroundEnabled?: boolean
+            backgroundSidebarTransparent?: number
+            backgroundFooterTransparent?: number
+        } }).backgroundPlugin
+
+        // Each surface gets its own transparency factor so popups and inputs
+        // stay more legible than the tree rows when the sidebar is translucent.
+        // `t` is 0..100 from the background plugin's sidebar slider. When the
+        // plugin is off or t === 0 every variable falls back to the fully
+        // opaque theme colour via the SCSS defaults.
+        if (bg?.backgroundEnabled && (bg.backgroundSidebarTransparent ?? 0) > 0) {
+            const t = bg.backgroundSidebarTransparent!
+            const mix = (color: string, factor: number): string =>
+                `color-mix(in srgb, ${color} ${100 - t * factor}%, transparent)`
+
+            host.style.setProperty(
+                '--sidebar-plus-bg',
+                `color-mix(in srgb, var(--theme-bg-more-2) ${100 - t}%, transparent)`,
+            )
+            // Tree rows: hover lighter, selected a touch stronger.
+            host.style.setProperty('--sidebar-plus-hover-bg', mix('var(--theme-secondary)', 0.6))
+            host.style.setProperty('--sidebar-plus-selected-bg', mix('var(--theme-secondary)', 0.8))
+            // Action button strip behind the row's right edge.
+            host.style.setProperty('--sidebar-plus-actions-bg', mix('var(--theme-secondary)', 0.7))
+            // View-mode tabs (profiles / sessions / sftp).
+            host.style.setProperty('--sidebar-plus-tab-bg', mix('var(--theme-bg-more-2)', 0.55))
+            host.style.setProperty('--sidebar-plus-tab-hover-bg', mix('var(--theme-secondary)', 0.6))
+            host.style.setProperty('--sidebar-plus-tab-active-bg', mix('var(--theme-primary)', 0.3))
+            // Filter input.
+            host.style.setProperty('--sidebar-plus-input-bg', mix('var(--theme-bg-more-2)', 0.55))
+            host.style.setProperty('--sidebar-plus-input-focus-bg', mix('var(--theme-bg-more-2)', 0.3))
+            // Floating popups: keep mostly opaque so they stay readable.
+            host.style.setProperty('--sidebar-plus-popup-bg', mix('var(--theme-bg)', 0.25))
+            host.style.setProperty('--sidebar-plus-popup-hover-bg', mix('var(--theme-secondary)', 0.4))
+        } else {
+            ;[
+                '--sidebar-plus-bg',
+                '--sidebar-plus-hover-bg',
+                '--sidebar-plus-selected-bg',
+                '--sidebar-plus-actions-bg',
+                '--sidebar-plus-tab-bg',
+                '--sidebar-plus-tab-hover-bg',
+                '--sidebar-plus-tab-active-bg',
+                '--sidebar-plus-input-bg',
+                '--sidebar-plus-input-focus-bg',
+                '--sidebar-plus-popup-bg',
+                '--sidebar-plus-popup-hover-bg',
+            ].forEach(v => host.style.removeProperty(v))
+        }
+
+        if (bg?.backgroundEnabled && bg.backgroundFooterTransparent != null) {
+            const t = bg.backgroundFooterTransparent
+            host.style.setProperty(
+                '--sidebar-plus-footer-bg',
+                `color-mix(in srgb, rgba(0,0,0,1) ${100 - t}%, transparent)`,
+            )
+        } else {
+            host.style.removeProperty('--sidebar-plus-footer-bg')
+        }
+    }
 
     /**
      * Translates a `{ message, params }` handed back by a module with no
@@ -529,6 +604,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     async ngOnInit (): Promise<void> {
+        // Apply the background plugin's transparency settings (if any) before
+        // the first paint so the sidebar doesn't flash opaque.
+        this.applyBackgroundTransparency()
         await this.loadTreeItems()
         // Kept so ngOnDestroy can drop it. The component *is* destroyed —
         // SidebarPlusMountService unmounts it when `sidebarPlus.enabled` goes
@@ -536,6 +614,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // still rebuilding the whole tree on every config.save() of the
         // application, twice cloned, for as long as the window lives.
         this.configSubscription = this.config.changed$.subscribe(() => {
+            // The background plugin's transparency sliders live under
+            // backgroundPlugin — re-apply whenever any config changes.
+            this.applyBackgroundTransparency()
             // Before the reload, not after: switching a block off can change
             // the active workspace or drop the filter, both of which decide
             // what loadTreeItems() is supposed to build.

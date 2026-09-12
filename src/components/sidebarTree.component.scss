@@ -19,7 +19,10 @@ sidebar-plus-tree {
     // its strip structurally — nothing can enter it.
     display: flex;
     flex-direction: column;
-    background-color: var(--theme-bg-more-2);
+    // Driven by --sidebar-plus-bg so the component can follow the background
+    // plugin's sidebar-transparency setting without the background plugin
+    // having to know this element exists. Falls back to the theme base.
+    background-color: var(--sidebar-plus-bg, var(--theme-bg-more-2));
     position: relative;
     border-right: 1px solid var(--theme-secondary);
 }
@@ -36,6 +39,14 @@ sidebar-plus-tree {
 // moved out to <body>, and those contain no input.
 sidebar-plus-tree input {
     border: 1px solid var(--theme-secondary);
+    // Driven by --sidebar-plus-input-bg so the field follows the background
+    // plugin's sidebar-transparency slider. Falls back to the opaque theme
+    // colour when the plugin is off.
+    background-color: var(--sidebar-plus-input-bg, var(--theme-bg-more-2));
+
+    &:focus {
+        background-color: var(--sidebar-plus-input-focus-bg, var(--theme-bg-more-2));
+    }
 }
 
 // Scoped to the plugin's tag for the same reason as the input rule above:
@@ -54,15 +65,15 @@ sidebar-plus-tree .view-mode-bar {
         font-size: .75rem;
         color: inherit;
         text-decoration: none;
-        background-color: var(--theme-bg-more-2);
+        background-color: var(--sidebar-plus-tab-bg, var(--theme-bg-more-2));
         border: 1px solid var(--theme-secondary);
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-tab-hover-bg, var(--theme-secondary));
         }
 
         &.active {
-            background-color: var(--theme-primary);
+            background-color: var(--sidebar-plus-tab-active-bg, var(--theme-primary));
             color: var(--theme-bg);
             border-color: var(--theme-primary);
         }
@@ -97,7 +108,7 @@ sidebar-plus-tree .active-sessions {
         cursor: pointer;
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-hover-bg, var(--theme-secondary));
         }
 
         .fa-chevron-right,
@@ -142,7 +153,7 @@ sidebar-plus-tree .active-sessions {
         cursor: pointer;
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-hover-bg, var(--theme-secondary));
 
             .actions {
                 display: flex;
@@ -219,7 +230,7 @@ sidebar-plus-tree .active-sessions {
             flex-direction: row;
             height: 100%;
             padding: .25rem;
-            background: var(--theme-secondary);
+            background: var(--sidebar-plus-actions-bg, var(--theme-secondary));
 
             .action {
                 display: flex;
@@ -257,15 +268,15 @@ sidebar-plus-tree .active-sessions {
         font-size: .75rem;
         color: inherit;
         text-decoration: none;
-        background-color: var(--theme-bg-more-2);
+        background-color: var(--sidebar-plus-tab-bg, var(--theme-bg-more-2));
         border: 1px solid var(--theme-secondary);
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-tab-hover-bg, var(--theme-secondary));
         }
 
         &.active {
-            background-color: var(--theme-primary);
+            background-color: var(--sidebar-plus-tab-active-bg, var(--theme-primary));
             color: var(--theme-bg);
             border-color: var(--theme-primary);
         }
@@ -317,11 +328,11 @@ sidebar-plus-tree .active-sessions {
     font-size: .75rem;
     color: inherit;
     text-decoration: none;
-    background-color: var(--theme-bg-more-2);
+    background-color: var(--sidebar-plus-tab-bg, var(--theme-bg-more-2));
     border: 1px solid var(--theme-secondary);
 
     &:hover {
-        background-color: var(--theme-secondary);
+        background-color: var(--sidebar-plus-tab-hover-bg, var(--theme-secondary));
     }
 
     // Same reasoning as .workspace-tab profile-icon above: sized to this
@@ -542,7 +553,7 @@ sidebar-plus-tree .active-sessions {
         align-items: center;
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-hover-bg, var(--theme-secondary));
 
             .actions {
                 display: flex;
@@ -555,7 +566,7 @@ sidebar-plus-tree .active-sessions {
         // purpose: it paints inside the existing box and changes no geometry,
         // which a drop target must never do mid-drag (piège #25).
         &.selected {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-selected-bg, var(--theme-secondary));
             box-shadow: inset 2px 0 0 var(--theme-primary);
         }
 
@@ -583,7 +594,7 @@ sidebar-plus-tree .active-sessions {
             gap: .25rem;
             height: 100%;
             padding: .25rem;
-            background: var(--theme-secondary);
+            background: var(--sidebar-plus-actions-bg, var(--theme-secondary));
 
             .action {
                 display: flex;
@@ -756,11 +767,9 @@ sidebar-plus-tree .grabber {
     min-width: 140px;
     padding: .25rem;
     border-radius: .3rem;
-    // Deliberately --theme-bg (the base app/terminal background), not
-    // --theme-bg-more-2 like the sidebar itself (line ~10 above) — using
-    // the same shade as the sidebar made every floating menu/popup blend
-    // straight into it, hard to visually pick out on right-click.
-    background-color: var(--theme-bg);
+    // Driven by --sidebar-plus-popup-bg so the floating menu follows the
+    // background plugin's slider. Falls back to opaque --theme-bg when off.
+    background-color: var(--sidebar-plus-popup-bg, var(--theme-bg));
     border: 1px solid var(--theme-secondary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
 
@@ -791,7 +800,7 @@ sidebar-plus-tree .grabber {
         cursor: pointer;
 
         &:hover {
-            background-color: var(--theme-secondary);
+            background-color: var(--sidebar-plus-popup-hover-bg, var(--theme-secondary));
         }
 
         // The icon-tile menu shows the icon being pinned instead of a generic
@@ -839,9 +848,9 @@ sidebar-plus-tree .grabber {
     // Bounded, and scrolls inside itself past that.
     max-height: calc(100vh - #{$sidebar-footer-height} - 1.5rem);
     overflow-y: auto;
-    // Same reasoning as .group-context-menu above: --theme-bg, not the
-    // sidebar's --theme-bg-more-2, so these floating popups stand out too.
-    background-color: var(--theme-bg);
+    // Driven by --sidebar-plus-popup-bg so the popup follows the background
+    // plugin's slider. Falls back to opaque --theme-bg when off.
+    background-color: var(--sidebar-plus-popup-bg, var(--theme-bg));
     border: 1px solid var(--theme-secondary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
 
@@ -1098,10 +1107,10 @@ sidebar-plus-tree .recent-profiles {
     padding: .3rem .4rem;
     border-radius: .3rem;
     font-size: .75rem;
-    background-color: var(--theme-bg-more-2);
+    // Follows the tree's own background variable so the floating bar tracks
+    // the background plugin's transparency slider instead of staying opaque.
+    background-color: var(--sidebar-plus-bg, var(--theme-bg-more-2));
     border-left: 2px solid var(--theme-primary);
-    // It now floats over the bottom of the tree instead of displacing it, so it
-    // needs to read as a layer above rather than as another row.
     box-shadow: 0 2px 10px rgba(0, 0, 0, .45);
 
     .selection-clear {
@@ -1183,7 +1192,7 @@ sidebar-plus-tree .recent-profiles {
             cursor: pointer;
 
             &:hover {
-                background-color: var(--theme-secondary);
+                background-color: var(--sidebar-plus-popup-hover-bg, var(--theme-secondary));
             }
 
             profile-icon {
@@ -1217,10 +1226,10 @@ sidebar-plus-tree .sidebar-plus-connection {
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    // Same opaque base as the footer: the panel must stay readable whatever
-    // the theme (and a translucent background image sits behind the sidebar).
-    background-color: #000;
-    background-image: linear-gradient(var(--theme-bg-more-2), var(--theme-bg-more-2));
+    // Transparent by design — inherits the sidebar-plus-tree host's background
+    // so it stays in sync with the tree rows above. When the background plugin
+    // makes the sidebar translucent, this panel also lets the wallpaper show
+    // through instead of blocking it with an opaque fill.
     border-top: 1px solid var(--theme-secondary);
 
     .conn-dot {
@@ -1247,27 +1256,26 @@ sidebar-plus-tree .sidebar-plus-connection {
     }
 
     .conn-name {
-        font-size: 0.78rem;
+        font-size: 0.875rem;
     }
 
     .conn-addr {
-        font-size: 0.7rem;
+        font-size: 0.875rem;
         opacity: 0.65;
     }
 }
 
 // Profile preview: the clicked sidebar profile's details. Independent of the
 // session indicator above (only one of the two is ever on screen).
+// Transparent by design — see .sidebar-plus-connection comment above.
 sidebar-plus-tree .sidebar-plus-preview {
     flex: 0 0 auto;
     padding: 6px 10px;
-    background-color: #000;
-    background-image: linear-gradient(var(--theme-bg-more-2), var(--theme-bg-more-2));
     border-top: 1px solid var(--theme-secondary);
 
     .preview-table {
         width: 100%;
-        font-size: 0.72rem;
+        font-size: 0.875rem;
         border-collapse: collapse;
 
         td {
@@ -1294,11 +1302,10 @@ sidebar-plus-tree .sidebar-plus-footer {
     justify-content: space-between;
     gap: 8px;
     padding: 0 6px 0 10px;
-    // Opaque whatever the theme: a solid base under the themed tint. A
-    // vibrancy/rgba theme color alone would let the desktop (or anything
-    // else) show through — the user asked for none of that, on both views.
-    background-color: #000;
-    background-image: linear-gradient(var(--theme-bg-more-2), var(--theme-bg-more-2));
+    // Driven by --sidebar-plus-footer-bg so the footer follows the background
+    // plugin's footer-transparency setting. Falls back to transparent (inherits
+    // the host background) when the plugin is absent or disabled.
+    background-color: var(--sidebar-plus-footer-bg, transparent);
     border-top: 1px solid var(--theme-secondary);
 
     .sidebar-plus-footer-brand {
