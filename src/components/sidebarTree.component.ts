@@ -63,8 +63,6 @@ interface CollapsableProfileGroup extends ProfileGroup {
     children: PartialProfileGroup<CollapsableProfileGroup>[]
 }
 
-type ProfileConnectionStatus = 'connected' | 'error'
-
 /** Duck-typed shape of tabs that carry a launching profile and a live session (e.g. BaseTerminalTabComponent). */
 interface ProfileBackedTab {
     profile?: { id?: string, name?: string, icon?: string, color?: string }
@@ -366,7 +364,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private liveTunnelKeys = new Map<string, Set<string>>()
     activeTunnelsCollapsed = window.localStorage.sidebarPlusActiveTunnelsCollapsed === 'true'
 
-    profileStatuses = new Map<string, ProfileConnectionStatus>()
     /** Profile clicked in the tree, previewed in the bottom panel. */
     previewProfile: PartialProfile<Profile>|null = null
     private statusSubscription: Subscription|null = null
@@ -641,7 +638,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             }
         })
 
-        this.refreshProfileStatuses()
         this.refreshActiveSessions()
         this.watchSplitFocus()
         // Recomputes on every meaningful registry change (an entry starting or
@@ -675,7 +671,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // what keeps a dead session from staying listed as live.
             timer(2000, 2000),
         ).subscribe(() => {
-            this.refreshProfileStatuses()
             this.refreshActiveSessions()
             this.watchSplitFocus()
         })
@@ -2088,27 +2083,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         return [favoritesGroup, ...groups]
     }
 
-    ////// LIVE CONNECTION STATUS //////
-    getProfileStatus (profile: PartialProfile<Profile>): ProfileConnectionStatus|null {
-        return (profile.id && this.profileStatuses.get(profile.id)) || null
-    }
-
-    private refreshProfileStatuses (): void {
-        const statuses = new Map<string, ProfileConnectionStatus>()
-        for (const tab of getAllOpenTabs(this.app) as unknown as ProfileBackedTab[]) {
-            const profileId = tab.profile?.id
-            if (!profileId) {
-                continue
-            }
-            if (tab.session) {
-                statuses.set(profileId, 'connected')
-            } else if (!statuses.has(profileId)) {
-                statuses.set(profileId, 'error')
-            }
-        }
-        this.profileStatuses = statuses
-    }
-
     ////// ACTIVE SESSIONS //////
     /**
      * Rebuilds the list of live SSH sessions, one row per *pane* — a split
@@ -2588,14 +2562,14 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      * profile name plus user@host:port and a live/disconnected state. Null when
      * the focused tab is not an SSH session.
      */
-    get connectionInfo (): { name: string, host: string, user: string, port: string, protocol: string, status: ProfileConnectionStatus|null }|null {
+    get connectionInfo (): { name: string, host: string, user: string, port: string, protocol: string, connected: boolean }|null {
         const tab = this.resolveFocusedTab()
         if (!tab || !isSSHTab(tab)) {
             return null
         }
         const ssh = tab as unknown as SSHTabComponent
         const profile = (ssh as unknown as {
-            profile?: { id?: string, name?: string, type?: string, options?: { host?: string, user?: string, port?: number } }
+            profile?: { name?: string, type?: string, options?: { host?: string, user?: string, port?: number } }
         }).profile
         const options = profile?.options ?? {}
         return {
@@ -2604,12 +2578,16 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             user: options.user ?? '',
             port: options.port != null ? String(options.port) : '22',
             protocol: profile?.type ?? '',
-            status: profile?.id ? (this.profileStatuses.get(profile.id) ?? null) : null,
+            // Same signal Tabby's own sidebar uses: Tabby nulls `session` when
+            // the session ends, so a non-null session is "connected" and null
+            // is the dot going grey. No second state: a session either exists
+            // on this tab or it does not.
+            connected: !!(ssh as unknown as { session?: unknown }).session,
         }
     }
 
     /** Details of the profile clicked in the tree, for the bottom panel. */
-    get previewInfo (): { name: string, host: string, user: string, port: string, protocol: string, status: ProfileConnectionStatus|null }|null {
+    get previewInfo (): { name: string, host: string, user: string, port: string, protocol: string }|null {
         const profile = this.previewProfile
         if (!profile) {
             return null
@@ -2625,7 +2603,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // No SSH-style default: a profile without a port has no port row.
             port: options.port != null ? String(options.port) : '',
             protocol: provider ? this.i18n.t(provider.name) : (profile.type ?? ''),
-            status: profile.id ? (this.profileStatuses.get(profile.id) ?? null) : null,
         }
     }
 

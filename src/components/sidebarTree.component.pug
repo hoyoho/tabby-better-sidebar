@@ -370,11 +370,6 @@
                                     span.drag-count(*ngIf='selectedProfileIds.size > 1 && isProfileSelected(profile)') +{{ selectedProfileIds.size - 1 }}
                                 .fw-20
                                     profile-icon.ms-1([icon]='profile.icon', [color]='profile.color')
-                                span.status-dot.ms-1(
-                                    [class.status-dot-connected]='getProfileStatus(profile) === "connected"',
-                                    [class.status-dot-error]='getProfileStatus(profile) === "error"',
-                                    [title]="getProfileStatus(profile) === 'connected' ? ('Connected' | translate) : getProfileStatus(profile) === 'error' ? ('Disconnected' | translate) : ('No session' | translate)"
-                                )
                                 span.ms-2.no-wrap {{ profile.name }}
                                 .fa.fa-fw.fas.fa-star.ms-1.favorite-badge(*ngIf='isFavorite(profile)')
                                 //- The whole point of a note is to be seen
@@ -901,10 +896,7 @@
 //- Session indicator: the focused SSH session, hidden as soon as focus leaves
 //- an SSH tab. Suppressed while a profile preview is on screen.
 .sidebar-plus-connection(*ngIf='connectionInfo && !previewInfo')
-    span.conn-dot(
-        [class.connected]='connectionInfo.status === "connected"',
-        [class.error]='connectionInfo.status === "error"'
-    )
+    span.conn-dot([class.connected]='connectionInfo.connected')
     .conn-text
         span.conn-name.no-wrap {{ connectionInfo.name }}
         span.conn-addr.no-wrap {{ connectionInfo.user }}@{{ connectionInfo.host }}:{{ connectionInfo.port }}

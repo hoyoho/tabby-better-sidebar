@@ -516,25 +516,6 @@ sidebar-plus-tree .active-sessions {
         cursor: help;
     }
 
-    .status-dot {
-        flex: 0 0 auto;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: var(--theme-secondary-fg);
-        opacity: .35;
-
-        &.status-dot-connected {
-            background-color: #3fb950;
-            opacity: 1;
-        }
-
-        &.status-dot-error {
-            background-color: #e5534b;
-            opacity: 1;
-        }
-    }
-
     profile-icon {
         width: 15px;
         height: 15px;
@@ -1241,10 +1222,6 @@ sidebar-plus-tree .sidebar-plus-connection {
 
         &.connected {
             background-color: #5cb85c;
-        }
-
-        &.error {
-            background-color: #d9534f;
         }
     }
 
