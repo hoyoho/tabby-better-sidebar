@@ -42,43 +42,47 @@
         //- The list scrolls past four rows (see the SCSS): the header has to
         //- stay put, so the cap goes on this inner wrapper, not on the section.
         .active-sessions-list(*ngIf='!activeSessionsCollapsed')
-            //- The SFTP shortcut is a div inside .actions, not a nested <a>:
-            //- the row itself is an <a>, and an anchor inside an anchor is
-            //- invalid HTML that the parser silently un-nests. Same shape as
-            //- the profile rows' own .actions block below.
-            a.active-session(
-                *ngFor='let session of visibleActiveSessions; trackBy: trackSession',
-                [class.focused]='session.focused',
-                (click)='focusSession(session, $event)',
-                (mouseenter)='onSessionHover(session, true)',
-                (mouseleave)='onSessionHover(session, false)',
-                [title]='sessionTooltip(session)',
-                href='#'
-            )
-                //- The row's one dot, carrying the latency colour: in this
-                //- section every row is a live session by construction, so a
-                //- permanently green "connected" dot said nothing. It carries
-                //- no tooltip of its own — the figures are in the row's, which
-                //- is reachable from anywhere along it.
-                span.status-dot.ms-1([ngClass]='sessionDotClass(session)')
-                .fw-20
-                    profile-icon.ms-1([icon]='session.icon', [color]='session.color')
-                span.ms-2.me-auto.no-wrap {{ session.name }}
-                //- Uptime on the row rather than in the tooltip only: it is the
-                //- kind of thing one reads by scanning the list, not by aiming
-                //- at a dot. Covered by .actions on hover, which is fine — the
-                //- tooltip repeats it. Swapped for the compact transfer segment
-                //- while one is running (session.transferLabel, precomposed by
-                //- refreshSessionTransfers() — piège #54) — uptime comes back
-                //- the moment the last transfer on this session leaves `active`.
-                span.session-uptime.no-wrap(*ngIf='!session.transferCount') {{ sessionUptime(session) }}
-                span.session-transfer.no-wrap(*ngIf='session.transferCount') {{ session.transferLabel }}
-                .actions
-                    .action(
-                        (click)='openSessionSftp(session, $event)',
-                        [title]="'Open the SFTP of this session' | translate"
-                    )
-                        .fa.fa-fw.fas.fa-folder-open
+            //- Rows can now be SSH and local/serial/telnet alike (WSL, Git
+            //- Bash, ...), so a long mixed list is grouped by connection kind —
+            //- see sessionGroups / sessionCategoryLabel. A list holding a single
+            //- kind gets no headers: subdivision of one column is noise.
+            .session-group(*ngFor='let group of sessionGroups')
+                .session-group-header(*ngIf='sessionGroups.length > 1')
+                    span.me-auto {{ group.label }}
+                    span.session-group-count {{ group.sessions.length }}
+                //- The SFTP shortcut is a div inside .actions, not a nested <a>:
+                //- the row itself is an <a>, and an anchor inside an anchor is
+                //- invalid HTML that the parser silently un-nests. Same shape as
+                //- the profile rows' own .actions block below.
+                a.active-session(
+                    *ngFor='let session of group.sessions; trackBy: trackSession',
+                    [class.focused]='session.focused',
+                    (click)='focusSession(session, $event)',
+                    (mouseenter)='onSessionHover(session, true)',
+                    (mouseleave)='onSessionHover(session, false)',
+                    [title]='sessionTooltip(session)',
+                    href='#'
+                )
+                    //- The row's one dot: latency-coloured for SSH when the
+                    //- probe is on, plain "connected" green for the other kinds
+                    //- (see sessionDotClass). It carries no tooltip of its own —
+                    //- the figures are in the row's, which is reachable from
+                    //- anywhere along it.
+                    span.status-dot.ms-1([ngClass]='sessionDotClass(session)')
+                    .fw-20
+                        profile-icon.ms-1([icon]='session.icon', [color]='session.color')
+                    span.ms-2.me-auto.no-wrap {{ session.name }}
+                    span.session-uptime.no-wrap(*ngIf='!session.transferCount') {{ sessionUptime(session) }}
+                    span.session-transfer.no-wrap(*ngIf='session.transferCount') {{ session.transferLabel }}
+                    .actions
+                        //- local/serial/telnet tabs have no SFTP subsystem to
+                        //- open; only SSH sessions get the shortcut.
+                        .action(
+                            *ngIf='session.isSSH',
+                            (click)='openSessionSftp(session, $event)',
+                            [title]="'Open the SFTP of this session' | translate"
+                        )
+                            .fa.fa-fw.fas.fa-folder-open
 
     //- Réengagement rapide sur les 5 derniers profils lancés, tous types
     //- confondus, jamais cloisonné par workspace — un lancement est un fait de

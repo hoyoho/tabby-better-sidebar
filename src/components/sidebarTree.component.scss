@@ -137,6 +137,35 @@ sidebar-plus-tree .active-sessions {
         overflow-y: auto;
     }
 
+    // A faint divider between connection-kind buckets when the list mixes SSH
+    // and local/serial/telnet sessions. The divider stays below the header —
+    // the cap above is on .active-sessions-list, so a long mixed list scrolls
+    // each bucket's rows while every header stays visible. Kept unlabelled
+    // (colour + vertical rule only) so the section still reads as one list
+    // rather than four stacked sections.
+    .session-group-header {
+        display: flex;
+        align-items: center;
+        padding: .2rem .25rem .1rem;
+        font-size: .62rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--theme-secondary-fg);
+        user-select: none;
+
+        .session-group-count {
+            font-size: .6rem;
+            padding: 0 .3rem;
+            border-radius: .5rem;
+            background-color: var(--theme-secondary);
+        }
+
+        &:not(:first-child) {
+            margin-top: .15rem;
+            border-top: var(--theme-secondary) 1px solid;
+        }
+    }
+
     .active-session {
         display: flex;
         align-items: center;
