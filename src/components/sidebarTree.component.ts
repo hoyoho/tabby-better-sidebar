@@ -277,6 +277,16 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      * lose track of it.
      */
     activeSessions: ActiveSession[] = []
+    /**
+     * Cached bucketed view of `visibleActiveSessions`, recomputed from
+     * `refreshActiveSessions()` rather than on every change-detection pass.
+     * The outer `*ngFor` reads this through the `sessionGroups` getter; a
+     * getter that rebuilt the array each CD (the pre-fix shape) allocated a
+     * new Map + per-category arrays + SessionGroup objects on every pass and,
+     * combined with the outer loop's lack of `trackBy`, tore down and rebuilt
+     * the whole sessions list on every mousemove during a tab drag.
+     */
+    private _sessionGroups: SessionGroup[] = []
     /** tab → when it was first seen live, the only record of a session's age there is (see sessionUptime()). */
     private sessionOpenedAt = new Map<BaseTabComponent, number>()
     /**
@@ -640,6 +650,10 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // switch has to fall back to the uptime immediately, not on the
             // next 2s poll or registry event.
             this.refreshSessionTransfers()
+            // The sessions/tunnels blocks' visibility can flip here; rebuild
+            // `activeSessions` (and the cached `_sessionGroups`) immediately
+            // rather than waiting for the next poll or tab event.
+            this.refreshActiveSessions()
         })
 
         // hotkey$, not unfilteredHotkey$: the filtered stream stays quiet while
@@ -1349,8 +1363,24 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      * reads them online (ssh, then local terminals like WSL / Git Bash, then
      * out-of-band kinds). A single bucket collapses to a plain list in the
      * template — headers only appear once the list holds several kinds.
+     *
+     * Returns the cached `_sessionGroups` array (same reference across change
+     * detection passes) so the outer `*ngFor` does not rebuild every group's
+     * DOM on every mousemove during a tab drag. Recomputed by
+     * `recomputeSessionGroups()` from `refreshActiveSessions()`.
      */
     get sessionGroups (): SessionGroup[] {
+        return this._sessionGroups
+    }
+
+    /**
+     * Rebuilds `_sessionGroups` from the current `visibleActiveSessions`.
+     * Called from `refreshActiveSessions()` whenever the session set or the
+     * active workspace could have changed — not from a template getter, since
+     * that would allocate new arrays/objects on every change-detection pass
+     * and defeat the `trackBy` below.
+     */
+    private recomputeSessionGroups (): void {
         const order = ['ssh', 'local', 'serial', 'telnet']
         const buckets = new Map<string, ActiveSession[]>()
         for (const session of this.visibleActiveSessions) {
@@ -1367,7 +1397,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             const ib = order.indexOf(b)
             return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib)
         })
-        return categories.map(category => ({
+        this._sessionGroups = categories.map(category => ({
             category,
             label: this.sessionCategoryLabel(category),
             sessions: buckets.get(category)!,
@@ -1384,6 +1414,17 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private sessionCategoryLabel (category: string): string {
         const provider = this.profileProviders.find(p => p.id === category)
         return provider ? this.i18n.t(provider.name) : category
+    }
+
+    /**
+     * Keeps session group headers attached to their category even when the
+     * `sessionGroups` array is rebuilt by `recomputeSessionGroups()`. Without
+     * this the outer `*ngFor` would tear down and recreate every group (and all
+     * its session rows) whenever the array reference changed — the very thing
+     * the cached getter exists to avoid.
+     */
+    trackGroup (_: number, group: SessionGroup): string {
+        return group.category
     }
 
     /**
@@ -2208,6 +2249,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // A stale memory would resurrect "waiting" rows the moment the
             // block comes back on, for sessions that may be long gone.
             this.tunnelMemory.clear()
+            this.recomputeSessionGroups()
             return
         }
 
@@ -2409,6 +2451,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // existing ActiveSession objects rather than relying on the block
         // above to have swapped in fresh ones.
         this.refreshSessionTransfers()
+        // Rebuild the cached session-group buckets now that `activeSessions`
+        // (and the active workspace's visible slice of it) may have changed.
+        this.recomputeSessionGroups()
     }
 
     /**

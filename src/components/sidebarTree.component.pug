@@ -46,7 +46,7 @@
             //- Bash, ...), so a long mixed list is grouped by connection kind —
             //- see sessionGroups / sessionCategoryLabel. A list holding a single
             //- kind gets no headers: subdivision of one column is noise.
-            .session-group(*ngFor='let group of sessionGroups')
+            .session-group(*ngFor='let group of sessionGroups; trackBy: trackGroup')
                 .session-group-header(*ngIf='sessionGroups.length > 1')
                     span.me-auto {{ group.label }}
                     span.session-group-count {{ group.sessions.length }}
