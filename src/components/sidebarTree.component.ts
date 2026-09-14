@@ -5,7 +5,7 @@ import { version as PLUGIN_VERSION } from '../../package.json'
 import FuzzySearch from 'fuzzy-search'
 import { merge, Subscription, timer } from 'rxjs'
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop'
-import { AfterViewChecked, Component, ElementRef, HostBinding, HostListener, Inject, Injector, Input, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core'
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostBinding, HostListener, Inject, Injector, Input, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import {
     AppService,
@@ -367,7 +367,8 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     /** Profile clicked in the tree, previewed in the bottom panel. */
     previewProfile: PartialProfile<Profile>|null = null
     private statusSubscription: Subscription|null = null
-    private previewClearSubscription: Subscription|null = null
+    private activeTabFocusSub: Subscription|null = null
+    private tabsChangedSubscription: Subscription|null = null
     private configSubscription: Subscription|null = null
     /** Focus moves *between panes* of the active split emit nothing on AppService — see watchSplitFocus(). */
     private splitFocusSubscription: Subscription|null = null
@@ -492,6 +493,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         private notifications: NotificationsService,
         private ngbModal: NgbModal,
         private zone: NgZone,
+        private cdr: ChangeDetectorRef,
         private platform: PlatformService,
         private hotkeys: HotkeysService,
         private ping: SidebarPlusPingService,
@@ -675,15 +677,27 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             this.watchSplitFocus()
         })
         // A session gaining focus takes the bottom panel back from a profile
-        // preview: the two never show at the same time.
-        this.previewClearSubscription = this.app.activeTabChange$.subscribe(() => {
-            this.previewProfile = null
+        // preview: the two never show at the same time. `activeTabChange$` is
+        // only part of the story — the active tab's own focus stream is what
+        // tells us the user has (re)engaged with a session, since
+        // `activeTabChange$` stays silent when the already-active tab is
+        // clicked again or its terminal is clicked into.
+        this.app.activeTabChange$.subscribe(() => {
+            this.tabStateChanged()
+            this.resubscribeActiveTabFocus()
         })
+        // Tab list changes (a session completing or dropping) also re-drive
+        // the bottom panels. Kept apart from the merged `statusSubscription`
+        // above on purpose: that one rides a 2s poll, and a poll must not
+        // dismiss a profile preview every two seconds.
+        this.tabsChangedSubscription = this.app.tabsChanged$.subscribe(() => this.tabStateChanged())
+        this.resubscribeActiveTabFocus()
     }
 
     ngOnDestroy (): void {
         this.statusSubscription?.unsubscribe()
-        this.previewClearSubscription?.unsubscribe()
+        this.activeTabFocusSub?.unsubscribe()
+        this.tabsChangedSubscription?.unsubscribe()
         this.configSubscription?.unsubscribe()
         this.hotkeySubscription?.unsubscribe()
         this.splitFocusSubscription?.unsubscribe()
@@ -2619,6 +2633,44 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (active instanceof SplitTabComponent) {
             this.splitFocusSubscription = active.focusChanged$.subscribe(() => this.refreshActiveSessions())
         }
+    }
+
+    /**
+     * Re-subscribes to the currently active tab's focus streams. Whenever the
+     * active session receives focus — whether by top-level tab click,
+     * click-into-terminal, or re-selecting the same tab — the profile preview
+     * is dismissed so the connection panel can take its place, the same rule
+     * Tabby's own sidebar follows.
+     *
+     * For a split the split's own `focused$` only fires on tab-level focus;
+     * inner-session clicks surface through `focusChanged$`, so both are merged.
+     */
+    private resubscribeActiveTabFocus (): void {
+        this.activeTabFocusSub?.unsubscribe()
+        this.activeTabFocusSub = null
+        const tab = this.app.activeTab
+        if (!tab) {
+            return
+        }
+        if (tab instanceof SplitTabComponent) {
+            this.activeTabFocusSub = merge(tab.focused$, tab.focusChanged$)
+                .subscribe(() => this.tabStateChanged())
+        } else {
+            this.activeTabFocusSub = tab.focused$
+                .subscribe(() => this.tabStateChanged())
+        }
+    }
+
+    /**
+     * A session gaining focus takes the bottom panel back from a profile
+     * preview: the two never show at the same time. The getters `previewInfo` /
+     * `connectionInfo` are re-evaluated on the next CD pass; without an
+     * explicit mark the panel swap can lag behind the focus event (observable
+     * callbacks run outside Angular's zone in some Electron input paths).
+     */
+    private tabStateChanged (): void {
+        this.previewProfile = null
+        this.cdr.markForCheck()
     }
 
     ////// SSH TUNNELS //////
