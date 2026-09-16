@@ -172,8 +172,8 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     /** Shown in the footer bar next to the plugin name. */
     readonly pluginVersion = PLUGIN_VERSION
     /** Footer links. Constants rather than template literals: the template must not compute (piège #54). */
-    readonly repositoryUrl = 'https://github.com/TooMuhtsh/tabby-better-sidebar'
-    readonly authorUrl = 'https://github.com/TooMuhtsh?tab=repositories'
+    readonly repositoryUrl = 'https://github.com/hoyoho/tabby-better-sidebar'
+    readonly authorUrl = 'https://github.com/hoyoho'
     profileGroups: PartialProfileGroup<ProfileGroup>[] = []
     rootGroups: PartialProfileGroup<ProfileGroup>[] = []
 

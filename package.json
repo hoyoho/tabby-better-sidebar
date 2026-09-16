@@ -37,11 +37,11 @@
   "typings": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TooMuhtsh/tabby-better-sidebar.git"
+    "url": "https://github.com/hoyoho/tabby-better-sidebar.git"
   },
-  "homepage": "https://github.com/TooMuhtsh/tabby-better-sidebar#readme",
+  "homepage": "https://github.com/hoyoho/tabby-better-sidebar#readme",
   "bugs": {
-    "url": "https://github.com/TooMuhtsh/tabby-better-sidebar/issues"
+    "url": "https://github.com/hoyoho/tabby-better-sidebar/issues"
   },
   "scripts": {
     "build": "webpack --progress --color",
@@ -56,7 +56,7 @@
     "THIRD-PARTY-NOTICES.md",
     "CHANGELOG.md"
   ],
-  "author": "TooMuhtsh",
+  "author": "Hoyoho",
   "license": "MIT",
   "devDependencies": {
     "@angular/animations": "^15.0.0",

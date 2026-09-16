@@ -9,7 +9,7 @@ part.
 
 [English](README.md) · **Français**
 
-[![License: MIT](https://img.shields.io/github/license/TooMuhtsh/tabby-better-sidebar?color=0d9488)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/hoyoho/tabby-better-sidebar?color=0d9488)](LICENSE)
 [![Part of Better Tabby](https://img.shields.io/badge/part%20of-Better%20Tabby-0d9488)](#-better-tabby-la-famille-de-plugins)
 
 </div>
@@ -257,7 +257,7 @@ réglages : rien de ce qui précède ne les supprime.
 ## 🛠️ Développement
 
 ```bash
-git clone https://github.com/TooMuhtsh/tabby-better-sidebar
+git clone https://github.com/hoyoho/tabby-better-sidebar
 cd tabby-better-sidebar
 npm install --ignore-scripts   # évite des postinstall qui compilent du natif inutile ici
 npm run watch
@@ -280,7 +280,7 @@ suffit pas, l'état du chargeur de plugins étant global au processus.
 plugin frère, voir [Better Tabby](#-better-tabby-la-famille-de-plugins)
 ci-dessus.
 
-[**Documentation de gouvernance IA**](https://toomuhtsh.github.io/tabby-better-sidebar/.AIRules/README.html) —
+[**Documentation de gouvernance IA**](https://hoyoho.github.io/tabby-better-sidebar/.AIRules/README.html) —
 ce plugin est développé avec un assistant IA sous une charte de gouvernance
 écrite, et le dossier de travail complet est public : invariants et pièges
 numérotés, journal de développement, roadmap et registre de tout ce qui a été

@@ -8,7 +8,7 @@ living *inside* the sidebar rather than in a separate docked panel.
 
 **English** · [Français](README.fr.md)
 
-[![License: MIT](https://img.shields.io/github/license/TooMuhtsh/tabby-better-sidebar?color=0d9488)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/hoyoho/tabby-better-sidebar?color=0d9488)](LICENSE)
 [![Part of Better Tabby](https://img.shields.io/badge/part%20of-Better%20Tabby-0d9488)](#-better-tabby-the-plugin-family)
 
 </div>
@@ -240,7 +240,7 @@ deletes them.
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/TooMuhtsh/tabby-better-sidebar
+git clone https://github.com/hoyoho/tabby-better-sidebar
 cd tabby-better-sidebar
 npm install --ignore-scripts   # avoids postinstall steps that build native code needlessly here
 npm run watch
@@ -261,7 +261,7 @@ since Tabby's plugin loader state is global to the process.
 [**tabby-better-vault**](https://github.com/TooMuhtsh/tabby-better-vault) — the
 sibling plugin, see [Better Tabby](#-better-tabby-the-plugin-family) above.
 
-[**AI governance docs**](https://toomuhtsh.github.io/tabby-better-sidebar/.AIRules/README.html) —
+[**AI governance docs**](https://hoyoho.github.io/tabby-better-sidebar/.AIRules/README.html) —
 this plugin is developed with an AI assistant under a written governance
 charter, and the full working dossier is public: invariants and numbered
 pitfalls, development journal, roadmap and a register of everything delivered,
