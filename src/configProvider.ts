@@ -105,7 +105,6 @@ export class SidebarPlusConfigProvider extends ConfigProvider {
         // top-level namespace. A HotkeyProvider without a matching default
         // here would show up in the settings with no binding at all.
         hotkeys: {
-            'sidebar-plus-insert-newline': ['Ctrl-Enter'],
             // Free on Windows and Linux: Tabby binds the terminal's own search
             // to Ctrl-Shift-F there, and only macOS uses ⌘-F for it — which is
             // a different chord from this one anyway.

@@ -21,6 +21,9 @@ msgstr "Snippets"
 msgid "Better Sidebar"
 msgstr "Better Sidebar"
 
+msgid "Filter the profiles (Better Sidebar)"
+msgstr "Filtrar los perfiles (Better Sidebar)"
+
 msgid "SSH session lost ({tab}) — back to Profiles view"
 msgstr "Sesión SSH perdida ({tab}) — volver a la vista Perfiles"
 

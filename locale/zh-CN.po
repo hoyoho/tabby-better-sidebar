@@ -21,6 +21,9 @@ msgstr "片段"
 msgid "Better Sidebar"
 msgstr "侧边栏+"
 
+msgid "Filter the profiles (Better Sidebar)"
+msgstr "过滤配置（侧边栏+）"
+
 msgid "SSH session lost ({tab}) — back to Profiles view"
 msgstr "SSH 会话已断开（{tab}）——返回配置视图"
 
