@@ -67,11 +67,6 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
         }
         this.isActive = value
         if (value) {
-            // The user just opened the SFTP view. If no SSH session exists yet,
-            // show the "Waiting" placeholder rather than bouncing straight back
-            // to Profiles — the auto-return feature is for a session dying
-            // *while* the view is open, not for the moment of entry.
-            this.suppressAutoReturnOnce = true
             this.sync()
         } else {
             this.releaseBoundPanel()
@@ -79,8 +74,6 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
     }
 
     private isActive = false
-    /** True only on the sync() pass that immediately follows activation. */
-    private suppressAutoReturnOnce = false
     /**
      * Whether a session has ever been bound during the current activation.
      * The "no live SSH session anywhere" auto-return must only fire when a
@@ -327,7 +320,6 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
             this.boundTab === null &&
             this.autoReturnToProfilesEnabled() &&
             this.noLiveSSHTabAnywhere() &&
-            !this.suppressAutoReturnOnce &&
             this.everBoundSinceActivation
         ) {
             this.notices.notice(this.i18n.t('No more active SSH session — back to Profiles view'))
@@ -335,7 +327,6 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
             setTimeout(() => this.closed.emit())
             return
         }
-        this.suppressAutoReturnOnce = false
 
         // Frozen: pin `tab` to whatever is already bound instead of asking
         // focus who's next — that's the entire effect of the freeze. The
