@@ -897,6 +897,9 @@ msgstr "配置已移动到“{where}”"
 msgid "Moving the folder failed"
 msgstr "移动文件夹失败"
 
+msgid "Creating the profile failed"
+msgstr "创建配置失败"
+
 msgid "SVG rejected."
 msgstr "SVG 被拒绝。"
 

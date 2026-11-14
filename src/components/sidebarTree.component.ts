@@ -4343,6 +4343,17 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         delete base.isBuiltin
         delete base.weight
         base.group = groupId
+        // A fresh id has to exist before the modal opens, not once its result
+        // comes back: the SSH settings panel keys saved passwords off
+        // profile.id, so a template id would make every new profile share one
+        // key — and profilesService.newProfile() only generates an id when
+        // there is none, otherwise it rejects the insert as a duplicate. The
+        // template carries `ssh:template`, hence the overwrite. Same shape
+        // Tabby uses in its own newProfileFromBlank()/newProfile().
+        base.id = `${base.type}:custom::${crypto.randomUUID()}`
+        // Left empty so getSuggestedName() below names the profile
+        // user@host:port instead of inheriting the template's own label.
+        base.name = ''
         this.closeContextMenu()
 
         const modal = openProfileModal(this.ngbModal, base, entry.provider)
@@ -4360,8 +4371,19 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             const cfgProxy = this.profilesService.getConfigProxyForProfile(result)
             result.name = entry.provider.getSuggestedName(cfgProxy) ?? entry.provider.name
         }
-        await this.profilesService.newProfile(result)
-        await this.config.save()
+        try {
+            await this.profilesService.newProfile(result)
+            await this.config.save()
+        } catch (err) {
+            // Deliberately not rethrown: this runs as an async Angular event
+            // handler, so a rethrow becomes an unhandled promise rejection —
+            // noise on top of the toast the user already gets, and the modal is
+            // already closed by now, so silence would be the only other option.
+            // console.error keeps it diagnosable.
+            // eslint-disable-next-line no-console
+            console.error('[sidebarPlus] creating the profile failed', err)
+            this.notifications.error(this.i18n.t('Creating the profile failed'), String(err))
+        }
     }
 
     ////// PROFILE EDITING (context menu) //////

@@ -897,6 +897,9 @@ msgstr "Perfil movido a «{where}»"
 msgid "Moving the folder failed"
 msgstr "No se pudo mover la carpeta"
 
+msgid "Creating the profile failed"
+msgstr "No se pudo crear el perfil"
+
 msgid "SVG rejected."
 msgstr "SVG rechazado."
 
