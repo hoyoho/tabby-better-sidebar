@@ -1990,8 +1990,20 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         event.preventDefault()
     }
 
+    /**
+     * Single dispatcher for document mousemoves. Angular's JIT host-listener
+     * metadata is keyed by event name (`bindings.listeners[eventName]` in the
+     * compiler facade), so a second @HostListener('document:mousemove') on
+     * another method would overwrite this one and silently drop the resize
+     * preview. One listener, two private handlers, no collision.
+     */
     @HostListener('document:mousemove', ['$event'])
-    onResizeMouseMove (event: MouseEvent): void {
+    onDocumentMouseMove (event: MouseEvent): void {
+        this.onDragMouseMove(event)
+        this.onResizeMouseMove(event)
+    }
+
+    private onResizeMouseMove (event: MouseEvent): void {
         if (!this.drag) { return }
         // Tracks the mouse all the way to 0 so the handle can reach the
         // collapse threshold; the min/close decision is deferred to release so
@@ -2160,8 +2172,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }
     }
 
-    @HostListener('document:mousemove', ['$event'])
-    onDragMouseMove (event: MouseEvent): void {
+    // Called from onDocumentMouseMove() — see the note there for why this is
+    // not itself a @HostListener.
+    private onDragMouseMove (event: MouseEvent): void {
         if (this.draggedGroupId) {
             this.updateHoveredGroup(event.clientX, event.clientY)
         }
