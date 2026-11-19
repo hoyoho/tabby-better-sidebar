@@ -39,6 +39,54 @@ sidebar-plus-sftp .sftp-host {
     min-height: 0;
 }
 
+// Two independent file lists: remote above, local below. Each pane is a flex
+// column of its own, so the toolbar, the scrolling body and the empty/loading
+// states of one side cannot push the other around. The local half stays
+// visible and usable while no SSH session is bound.
+sidebar-plus-sftp .sftp-split {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+sidebar-plus-sftp .sftp-pane {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+sidebar-plus-sftp .sftp-local-pane {
+    // A 1px theme-secondary line disappears into the two identical pane
+    // backgrounds. The accent makes the split visible without pretending to be
+    // a resize handle.
+    border-top: 2px solid var(--theme-primary);
+}
+
+// The pane is focusable so Delete can target it; a focus ring around the whole
+// half of the sidebar would read as a selection, so the row's own highlight
+// carries that role instead.
+sidebar-plus-sftp-local:focus {
+    outline: none;
+}
+
+// The waiting placeholder fills the whole remote pane when nothing is bound;
+// the local pane below it remains fully usable. The icon is centred on its own
+// because the flex column would otherwise stretch it to the full width (the
+// text divs stay stretched so they can still wrap and centre via text-align).
+sidebar-plus-sftp .sftp-remote-pane .sftp-waiting {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    > .fa {
+        align-self: center;
+    }
+}
+
 sidebar-plus-sftp .sftp-panel-container {
     display: flex;
     flex-direction: column;

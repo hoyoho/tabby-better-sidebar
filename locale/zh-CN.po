@@ -603,15 +603,6 @@ msgstr "此工作区中没有隐藏项目。"
 msgid "Show again"
 msgstr "重新显示"
 
-msgid "Connected"
-msgstr "已连接"
-
-msgid "Disconnected"
-msgstr "已断开"
-
-msgid "No session"
-msgstr "无会话"
-
 msgid "{count} tunnel(s) mounted on this session"
 msgstr "此会话上已挂载 {count} 个隧道"
 
@@ -1304,3 +1295,39 @@ msgstr "打开项目仓库"
 
 msgid "Open the author profile on GitHub"
 msgstr "在 GitHub 上打开作者主页"
+
+msgid "Home folder"
+msgstr "主目录"
+
+msgid "Could not read {path}"
+msgstr "无法读取 {path}"
+
+msgid "No active SSH session — nothing was sent"
+msgstr "没有活动的 SSH 会话 — 未发送任何内容"
+
+msgid "Edit on the server..."
+msgstr "在服务器上编辑..."
+
+msgid "Could not send {name}"
+msgstr "无法发送 {name}"
+
+msgid "Could not download {name}"
+msgstr "无法下载 {name}"
+
+msgid "{name} is not a file"
+msgstr "{name} 不是文件"
+
+msgid "{name} is a folder on the server"
+msgstr "{name} 在服务器上是文件夹"
+
+msgid "This folder is empty."
+msgstr "此文件夹为空。"
+
+msgid "Send to the remote pane"
+msgstr "发送到远程面板"
+
+msgid "The name cannot contain path separators"
+msgstr "名称不能包含路径分隔符"
+
+msgid "Copy full path"
+msgstr "复制完整路径"

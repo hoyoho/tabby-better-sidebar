@@ -603,15 +603,6 @@ msgstr "Keine ausgeblendeten Elemente in diesem Arbeitsbereich."
 msgid "Show again"
 msgstr "Wieder anzeigen"
 
-msgid "Connected"
-msgstr "Verbunden"
-
-msgid "Disconnected"
-msgstr "Getrennt"
-
-msgid "No session"
-msgstr "Keine Sitzung"
-
 msgid "{count} tunnel(s) mounted on this session"
 msgstr "{count} Tunnel auf dieser Sitzung aktiv"
 
@@ -1304,3 +1295,39 @@ msgstr "Projekt-Repository öffnen"
 
 msgid "Open the author profile on GitHub"
 msgstr "Autorenprofil auf GitHub öffnen"
+
+msgid "Home folder"
+msgstr "Benutzerordner"
+
+msgid "Could not read {path}"
+msgstr "{path} konnte nicht gelesen werden"
+
+msgid "No active SSH session — nothing was sent"
+msgstr "Keine aktive SSH-Sitzung — nichts wurde gesendet"
+
+msgid "Edit on the server..."
+msgstr "Auf dem Server bearbeiten..."
+
+msgid "Could not send {name}"
+msgstr "{name} konnte nicht gesendet werden"
+
+msgid "Could not download {name}"
+msgstr "{name} konnte nicht heruntergeladen werden"
+
+msgid "{name} is not a file"
+msgstr "{name} ist keine Datei"
+
+msgid "{name} is a folder on the server"
+msgstr "{name} ist auf dem Server ein Ordner"
+
+msgid "This folder is empty."
+msgstr "Dieser Ordner ist leer."
+
+msgid "Send to the remote pane"
+msgstr "An den entfernten Bereich senden"
+
+msgid "The name cannot contain path separators"
+msgstr "Der Name darf keine Pfadtrennzeichen enthalten"
+
+msgid "Copy full path"
+msgstr "Vollständigen Pfad kopieren"

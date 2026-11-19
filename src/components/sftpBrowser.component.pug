@@ -25,8 +25,13 @@
         (dblclick)='editPath()',
         [title]="'Double-click to type a path' | translate"
     )
-        a.crumb((click)='goRoot()') /
-        a.crumb(*ngFor='let segment of pathSegments', (click)='navigate(segment.path)') {{ segment.name }}
+        a.crumb.sftp-root((click)='goRoot()') /
+        ng-container(*ngFor='let segment of pathSegments; let i = index')
+            a.crumb-sep(
+                *ngIf='i > 0',
+                (click)='navigate(pathSegments[i - 1].path)'
+            ) /
+            a.crumb((click)='navigate(segment.path)') {{ segment.name }}
 
     //- A title on every button: the captions the native template pairs with
     //- each icon do not fit a sidebar, and an icon on its own says nothing.
@@ -183,6 +188,9 @@
     a.menu-item((click)='createFileFromMenu()')
         .fa.fa-fw.fas.fa-file-circle-plus.me-2
         span {{ 'Create a file' | translate }}
+    a.menu-item((click)='copyCurrentPath()')
+        .fa.fa-fw.fas.fa-copy.me-2
+        span {{ 'Copy full path' | translate }}
     .menu-separator
     a.menu-item((click)='openDisplayMenu()')
         .fa.fa-fw.fas.fa-table-columns.me-2

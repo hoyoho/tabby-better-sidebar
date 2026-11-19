@@ -15,11 +15,12 @@ import {
     createComponent,
 } from '@angular/core'
 import { AppService, BaseTabComponent, ConfigService, SplitTabComponent } from 'tabby-core'
-import { SSHTabComponent } from 'tabby-ssh'
+import { SSHTabComponent, SFTPFile } from 'tabby-ssh'
 import { getAllOpenTabs, isLiveSSHTab, isSSHTab } from '../tabs'
 import { SidebarPlusNoticesService } from '../notices.service'
 import { SidebarPlusI18nService } from '../i18n'
 import { SidebarPlusSftpBrowserComponent } from './sftpBrowser.component'
+import { SidebarPlusSftpLocalComponent } from './sftpLocal.component'
 
 /**
  * How long a lost session is given to come back before the sidebar switches
@@ -105,6 +106,13 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
     }
 
     @ViewChild('panelContainer', { static: true }) panelContainer!: ElementRef<HTMLElement>
+
+    /**
+     * The local half of the split view. It is a regular child of this
+     * component (unlike the remote browsers, which are cached and grafted in),
+     * so its current directory survives SSH tab switches for free.
+     */
+    @ViewChild(SidebarPlusSftpLocalComponent) localBrowser?: SidebarPlusSftpLocalComponent
 
     /**
      * One panel per SSH tab, kept alive across tab switches instead of being
@@ -258,6 +266,37 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
      */
     unfreeze (): void {
         this.frozen = false
+    }
+
+    /**
+     * A local file was double-clicked in the lower pane. The bound remote
+     * browser owns the session, the collision check and its own refresh; this
+     * method only refuses when there is no session to send to.
+     */
+    async uploadLocalFile (localPath: string): Promise<void> {
+        const ref = this.boundTab ? this.panels.get(this.boundTab) : null
+        if (!ref) {
+            this.notices.notice(this.i18n.t('No active SSH session — nothing was sent'))
+            return
+        }
+        await ref.instance.uploadLocalFile(localPath)
+    }
+
+    /**
+     * A remote file was double-clicked in the upper pane: download it into
+     * whatever directory the local pane is showing. `downloadToLocal()` picks
+     * the direct destination (no temporary folder); this method only routes
+     * the gesture and refreshes the local listing afterwards.
+     */
+    private async downloadToLocal (browser: SidebarPlusSftpBrowserComponent, item: SFTPFile): Promise<void> {
+        const localDir = this.localBrowser?.currentPath
+        if (!localDir) {
+            return
+        }
+        const target = await browser.downloadToLocal(item, localDir)
+        if (target) {
+            await this.localBrowser?.refresh()
+        }
     }
 
     private sync (): void {
@@ -527,7 +566,12 @@ export class SidebarPlusSftpComponent implements OnInit, OnDestroy {
             // Suppresses the panel's "working directory detection" tip banner,
             // which needs a shell session we deliberately don't reach for here.
             ref.instance.cwdDetectionAvailable = false
-            ref.instance.closed.subscribe(() => this.closed.emit())
+            const instance = ref.instance
+            instance.closed.subscribe(() => this.closed.emit())
+            // The remote pane's double-click goes through here: the local pane
+            // owns the destination directory, so the browser cannot resolve it
+            // on its own.
+            instance.transferRequest.subscribe(item => void this.downloadToLocal(instance, item))
             this.panels.set(tab, ref)
         }
         this.appRef.attachView(ref.hostView)

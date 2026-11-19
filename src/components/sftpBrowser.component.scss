@@ -1,16 +1,21 @@
 // Global CSS like every stylesheet in this plugin (piège #14), so everything
-// is anchored on the component's own tag. Nothing here relies on the native
-// panel's stylesheet: this component has its own template, so the `:host`
-// rules of SFTPPanelComponent — which carry *its* host attribute, not ours —
-// never apply. Layout is entirely our responsibility.
-sidebar-plus-sftp-browser {
+// is anchored on the pane tags. The rules both halves of the split view really
+// use are widened through :is(), so the two lists share one language rather
+// than growing copies that can drift apart; drag/drop, filtering, lazy loading
+// and the floating menu stay on the browser, which is the only pane that has
+// them. Nothing here
+// relies on the native panel's stylesheet: this component has its own template,
+// so the `:host` rules of SFTPPanelComponent — which carry *its* host
+// attribute, not ours — never apply. Layout is entirely our responsibility.
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
 }
 
-sidebar-plus-sftp-browser .sftp-toolbar,
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-toolbar,
 sidebar-plus-sftp-browser .sftp-filter-bar {
     flex: none;
     gap: .1rem;
@@ -18,7 +23,7 @@ sidebar-plus-sftp-browser .sftp-filter-bar {
     min-width: 0;
 }
 
-sidebar-plus-sftp-browser .sftp-tool {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-tool {
     flex: none;
     padding: .1rem .25rem;
     color: inherit;
@@ -39,7 +44,9 @@ sidebar-plus-sftp-browser .sftp-tool {
     }
 }
 
-sidebar-plus-sftp-browser .sftp-breadcrumb {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-breadcrumb {
+    display: flex;
+    align-items: center;
     min-width: 0;
     overflow-x: auto;
     white-space: nowrap;
@@ -53,6 +60,7 @@ sidebar-plus-sftp-browser .sftp-breadcrumb {
     }
 
     .crumb {
+        flex: none;
         cursor: pointer;
         opacity: .75;
 
@@ -60,16 +68,25 @@ sidebar-plus-sftp-browser .sftp-breadcrumb {
             opacity: 1;
             text-decoration: underline;
         }
+    }
 
-        &::after {
-            content: '/';
-            opacity: .4;
-            margin: 0 .15rem;
-        }
+    // A separator is its own clickable item: the padding gives it a real hit
+    // area without putting any padding on the folder names themselves.
+    .crumb-sep {
+        flex: none;
+        cursor: pointer;
+        opacity: .4;
+        padding: 0 .2rem;
 
-        &:last-child::after {
-            content: '';
+        &:hover {
+            opacity: 1;
         }
+    }
+
+    // The root crumb already contains the leading `/` or `C:\`; one pad after
+    // it is all the spacing the first folder needs.
+    .crumb.sftp-root {
+        padding-right: .2rem;
     }
 }
 
@@ -79,7 +96,7 @@ sidebar-plus-sftp-browser .sftp-breadcrumb {
 // clipping ancestor and stop the header sticking. A scroll container is a
 // valid containing block for its own sticky descendants, so putting the border
 // and the radius here keeps both.
-sidebar-plus-sftp-browser .sftp-body {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-body {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
@@ -90,7 +107,7 @@ sidebar-plus-sftp-browser .sftp-body {
     border-radius: .25rem;
 }
 
-sidebar-plus-sftp-browser .sftp-message {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-message {
     padding: .75rem .25rem;
     opacity: .6;
     font-size: .8rem;
@@ -102,12 +119,12 @@ sidebar-plus-sftp-browser .sftp-message {
 // width, and a directory — which has no size to show — simply leaves its track
 // empty instead of shifting everything left, which is what the native
 // template's `*ngIf` on the size cell used to do.
-sidebar-plus-sftp-browser .sftp-grid {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-grid {
     display: flex;
     flex-direction: column;
 }
 
-sidebar-plus-sftp-browser .sftp-row {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-row {
     // grid-template-columns comes from the component: the tracks depend on
     // which columns the user kept.
     display: grid;
@@ -235,7 +252,7 @@ sidebar-plus-sftp-browser .sftp-floating-menu {
 
 // Both optional, as in SFTP+, and both driven by a class on the grid so the
 // toggle costs nothing per row.
-sidebar-plus-sftp-browser .sftp-grid.with-col-borders .cell-value {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-grid.with-col-borders .cell-value {
     border-left: 1px solid var(--theme-secondary);
 }
 
@@ -246,18 +263,18 @@ sidebar-plus-sftp-browser .sftp-grid.with-col-borders .cell-value {
 // then lost to the cascade, which is why it read as a list that highlights only
 // every other row rather than as a bug. `:where()` contributes no specificity,
 // dropping the rule to (0,1,1) and putting every state above it for good.
-sidebar-plus-sftp-browser :where(.sftp-grid.with-zebra) .sftp-zebra {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) :where(.sftp-grid.with-zebra) .sftp-zebra {
     background-color: rgba(128, 128, 128, .06);
 }
 
 // Selection is stronger than hover, and beats the zebra stripe regardless of
 // which row it lands on — hence the specificity bump rather than source order.
-sidebar-plus-sftp-browser .sftp-row.sftp-selected,
-sidebar-plus-sftp-browser .sftp-row.sftp-selected:hover {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-row.sftp-selected,
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-row.sftp-selected:hover {
     background-color: color-mix(in srgb, var(--theme-primary) 60%, transparent);
 }
 
-sidebar-plus-sftp-browser .sftp-header-row {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-header-row {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -281,7 +298,7 @@ sidebar-plus-sftp-browser .sftp-header-row {
     }
 }
 
-sidebar-plus-sftp-browser .sftp-row-up {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-row-up {
     opacity: .6;
 
     .cell-name {
@@ -290,7 +307,7 @@ sidebar-plus-sftp-browser .sftp-row-up {
 }
 
 // Dotfiles stay listed but recede, so the entries that matter read first.
-sidebar-plus-sftp-browser .sftp-row.sftp-dim {
+:is(sidebar-plus-sftp-browser, sidebar-plus-sftp-local) .sftp-row.sftp-dim {
     opacity: .5;
 }
 

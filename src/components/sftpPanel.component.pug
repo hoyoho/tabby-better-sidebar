@@ -12,18 +12,26 @@
         )
             .fa.fa-fw.fas.fa-thumbtack
 
-    .sftp-waiting.text-muted.small(*ngIf='waiting')
-        .fa.fa-fw.fas.fa-plug.mb-2
-        div {{ 'Waiting for an active SSH session.' | translate }}
-        div.mt-1 {{ 'Open an SSH profile — the panel will follow the selected tab.' | translate }}
+    //- The SFTP view is a two-pane split: the remote listing above, a local
+    //- listing below. Both panes are independent; double-clicking a file sends
+    //- it to the other pane's current directory (see the handlers in the .ts).
+    .sftp-split
+        .sftp-pane.sftp-remote-pane
+            .sftp-waiting.text-muted.small(*ngIf='waiting')
+                .fa.fa-fw.fas.fa-plug.mb-2
+                div {{ 'Waiting for an active SSH session.' | translate }}
+                div.mt-1 {{ 'Open an SSH profile — the panel will follow the selected tab.' | translate }}
 
-    //- Tabby's own SFTPPanelComponent is grafted in here by attachPanel().
-    //- Hidden rather than *ngIf'd away while waiting: removing the container
-    //- would drop the very node the cached panels are re-attached to.
-    //-
-    //- `#panelContainer=""` and not a bare `#panelContainer`: pug renders a
-    //- valueless attribute as `name="name"` outside terse/HTML5 mode, and
-    //- Angular reads `#ref="something"` as an exportAs lookup, which would
-    //- fail at compile time. An explicitly empty value is the plain
-    //- element-reference form.
-    .sftp-panel-container.flex-grow-1(#panelContainer='', [hidden]='waiting')
+            //- Tabby's own SFTPPanelComponent is grafted in here by attachPanel().
+            //- Hidden rather than *ngIf'd away while waiting: removing the container
+            //- would drop the very node the cached panels are re-attached to.
+            //-
+            //- `#panelContainer=""` and not a bare `#panelContainer`: pug renders a
+            //- valueless attribute as `name="name"` outside terse/HTML5 mode, and
+            //- Angular reads `#ref="something"` as an exportAs lookup, which would
+            //- fail at compile time. An explicitly empty value is the plain
+            //- element-reference form.
+            .sftp-panel-container.flex-grow-1(#panelContainer='', [hidden]='waiting')
+
+        .sftp-pane.sftp-local-pane
+            sidebar-plus-sftp-local((uploadRequest)='uploadLocalFile($event)')

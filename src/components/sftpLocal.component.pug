@@ -1,0 +1,104 @@
+//- The local half of the split SFTP view. The list itself reuses the shared
+//- .sftp-* classes from sftpBrowser.component.scss — those selectors are scoped
+//- to both pane tags through :is(), so the two halves cannot drift apart.
+//-
+//- No expression here contains a string literal except the `| translate` pipe,
+//- which needs one (and needs its attribute delimited with double quotes, see
+//- the note at the top of sftpBrowser.component.pug).
+.sftp-toolbar.d-flex.align-items-center
+    input.form-control.form-control-sm.flex-grow-1(
+        *ngIf='editingPath !== null',
+        type='text',
+        autofocus,
+        (keydown.enter)='confirmPath()',
+        (keydown.esc)='cancelEditPath()',
+        (blur)='cancelEditPath()',
+        [(ngModel)]='editingPath'
+    )
+    .sftp-breadcrumb.flex-grow-1(
+        *ngIf='editingPath === null',
+        (dblclick)='editPath()',
+        [title]="'Double-click to type a path' | translate"
+    )
+        .fa.fa-fw.fas.fa-laptop.me-1
+        //- The root crumb carries the leading `C:\`/`/` and a right pad. Every
+        //- later folder is a bare name; a standalone separator (with padding on
+        //- both sides) sits before it, so only the separator itself is padded.
+        ng-container(*ngFor='let segment of pathSegments; let i = index; trackBy: trackSegment')
+            a.crumb-sep(
+                *ngIf='i > 1',
+                (click)='navigate(pathSegments[i - 1].path)'
+            ) {{ pathSeparator }}
+            a.crumb(
+                (click)='navigate(segment.path)',
+                [class.sftp-root]='i === 0'
+            ) {{ segment.name }}
+
+    button.btn.btn-link.btn-sm.sftp-tool(
+        type='button',
+        *ngIf='editingPath === null',
+        (click)='editPath()',
+        [title]="'Type the path by hand' | translate"
+    )
+        .fa.fa-fw.fas.fa-pen
+    button.btn.btn-link.btn-sm.sftp-tool(
+        type='button',
+        *ngIf='canGoUp',
+        (click)='goUp()',
+        [title]="'Go up one level' | translate"
+    )
+        .fa.fa-fw.fas.fa-level-up-alt
+    button.btn.btn-link.btn-sm.sftp-tool(type='button', (click)='home()', [title]="'Home folder' | translate")
+        .fa.fa-fw.fas.fa-home
+    button.btn.btn-link.btn-sm.sftp-tool(type='button', (click)='refresh()', [title]="'Refresh' | translate")
+        .fa.fa-fw.fas.fa-sync-alt
+
+//- The click handler ignores row clicks (see clearSelectionFromBackground):
+//- the empty area below the rows is this element's own padding.
+.sftp-body(
+    (mousedown)='focusPane()',
+    (contextmenu)='onBackgroundContextMenu($event)',
+    (click)='clearSelectionFromBackground($event)'
+)
+    .sftp-message(*ngIf='loading') {{ 'Loading...' | translate }}
+    .sftp-message(*ngIf='error') {{ error }}
+    .sftp-message(*ngIf='!loading && !error && !rows.length') {{ 'This folder is empty.' | translate }}
+    .sftp-grid(
+        *ngIf='!loading && !error && rows.length',
+        [class.with-col-borders]='showColumnBorders',
+        [class.with-zebra]='showZebra'
+    )
+        .sftp-row.sftp-header-row([style.grid-template-columns]='gridTemplate')
+            .cell-icon
+            .cell-name {{ 'Name' | translate }}
+            .cell-value.cell-right {{ 'Size' | translate }}
+            .cell-value {{ 'Date' | translate }}
+
+        .sftp-row.sftp-row-up(
+            *ngIf='canGoUp',
+            [style.grid-template-columns]='gridTemplate',
+            (click)='goUp()',
+            [title]="'Go up one level' | translate"
+        )
+            .cell-icon
+                .fa.fa-fw.fas.fa-level-up-alt
+            .cell-name ..
+            .cell-value
+            .cell-value
+
+        .sftp-row(
+            *ngFor='let row of rows; let i = index; trackBy: trackByPath',
+            [style.grid-template-columns]='gridTemplate',
+            [class.sftp-zebra]='i % 2 === 1',
+            [class.sftp-selected]='selectedPath === row.fullPath',
+            [class.sftp-dim]='row.hidden || row.broken',
+            (click)='select(row)',
+            (dblclick)='open(row)',
+            (contextmenu)='onRowContextMenu(row, $event)',
+            [title]='row.tooltip'
+        )
+            .cell-icon
+                i.fa-fw([class]='row.icon')
+            .cell-name {{ row.name }}
+            .cell-value.cell-right {{ row.sizeLabel }}
+            .cell-value {{ row.dateLabel }}

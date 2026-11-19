@@ -1,7 +1,8 @@
 import './sftpBrowser.component.scss'
-import { posix } from 'path'
+import * as fs from 'fs'
+import { basename, posix } from 'path'
 import { filesize } from 'filesize'
-import { AfterViewChecked, Component, ElementRef, HostListener, Inject, NgZone, OnDestroy, ViewChild } from '@angular/core'
+import { AfterViewChecked, Component, ElementRef, EventEmitter, HostListener, Inject, NgZone, OnDestroy, Output, ViewChild } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { ConfigService, HTMLFileUpload, LocaleService, NotificationsService, PlatformService, PromptModalComponent, TranslateService } from 'tabby-core'
 import { SFTPContextMenuItemProvider, SFTPFile, SFTPPanelComponent } from 'tabby-ssh'
@@ -292,6 +293,15 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
 
     /** What the server or the transport actually said — shown rather than guessed at. */
     sftpUnavailableReason = ''
+
+    /**
+     * A file was double-clicked. The host owns the local pane, so it is the
+     * side that knows the destination directory; this component only names the
+     * remote entry. The old double-click opened the edit round-trip and its
+     * temporary copy — that is now explicitly "Edit on the server..." in the
+     * context menu.
+     */
+    @Output() transferRequest = new EventEmitter<SFTPFile>()
 
     /**
      * `super.ngOnInit()` calls `session.openSFTP()` **outside** its own
@@ -640,6 +650,12 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         void this.openCreateDirectoryModal()
     }
 
+    /** Copies the remote directory on screen — the upload target — to the clipboard. */
+    copyCurrentPath (): void {
+        this.backgroundMenuOpen = false
+        this.platform.setClipboard({ text: this.path })
+    }
+
     /** Swaps one menu for the other in place, so the display settings appear where the cursor already is. */
     openDisplayMenu (): void {
         this.backgroundMenuOpen = false
@@ -801,15 +817,141 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
     }
 
     /**
-     * Double-click. Directories navigate, as the inherited `open()` does; files
-     * take the edit round-trip instead of `open()`'s save-file dialog.
+     * Double-click. Directories navigate, as they always did; files are sent
+     * to the local pane's current directory instead of opening the edit
+     * round-trip. Editing is still available from the context menu, where it
+     * cannot be confused with the transfer gesture.
      *
-     * Always `editor` mode: a double-click must never reach the OS association,
-     * which would run an executable rather than open it. `openWith` exists, but
-     * only behind the explicit context-menu entry.
+     * A symlink is resolved first for the same reason `openEntry()` does it:
+     * a link to a directory must navigate rather than try to transfer a file,
+     * and a link to a file must be transferred *as its target* so the local
+     * copy gets the target's real size and mode rather than the link's.
      */
     async openItem (item: SFTPFile): Promise<void> {
-        await this.openEntry(item, 'editor')
+        this.select(item)
+        if (this.isDirectoryEntry(item)) {
+            await this.navigate(item.fullPath)
+            return
+        }
+        if (item.isSymlink) {
+            let target: SFTPFile|null
+            try {
+                target = await this.resolveSymlink(item)
+            } catch (e) {
+                this.notify.error(this.i18n.t('Could not follow the link {name}', { name: item.name }), String(e))
+                return
+            }
+            if (!target) {
+                this.notices.error(this.i18n.t('{name} points to a target that cannot be found', { name: item.name }))
+                return
+            }
+            if (this.isDirectoryEntry(target)) {
+                // Navigation stays on the link's own path — the server resolves
+                // it, and that is the location the user double-clicked.
+                await this.navigate(item.fullPath)
+                return
+            }
+            if (target.name !== item.name) {
+                this.notices.notice(this.i18n.t('{name} → {target}', { name: item.name, target: target.fullPath }))
+            }
+            this.transferRequest.emit(target)
+            return
+        }
+        this.transferRequest.emit(item)
+    }
+
+    /**
+     * Sends one local file to the remote directory currently shown.
+     *
+     * Called by the host when the lower pane's double-click arrives. Direct
+     * path on both sides: the local file is read where it is and written to
+     * `posix.join(this.path, name)`; no temporary copy is involved.
+     *
+     * Collisions are confirmed first. `SFTPSession.upload()` replaces its
+     * target by rename, so an unnoticed same-name file would vanish without a
+     * word — the same reason the drop planner asks before overwriting.
+     */
+    async uploadLocalFile (localPath: string): Promise<void> {
+        await this.zone.run(async () => {
+            if (!this.sftp) {
+                return
+            }
+            const name = basename(localPath)
+            let info: fs.Stats
+            try {
+                info = await fs.promises.stat(localPath)
+            } catch (e) {
+                this.notices.error(this.i18n.t('Could not send {name}', { name }), String(e))
+                return
+            }
+            if (!info.isFile()) {
+                this.notices.error(
+                    this.i18n.t('Could not send {name}', { name }),
+                    this.i18n.t('{name} is not a file', { name }),
+                )
+                return
+            }
+
+            const destination = this.path
+            const remotePath = posix.join(destination, name)
+            const existing = await readRemoteEntry(this.sftp, remotePath).catch(() => null)
+            if (existing) {
+                if (this.isDirectoryEntry(existing)) {
+                    this.notices.error(
+                        this.i18n.t('Could not send {name}', { name }),
+                        this.i18n.t('{name} is a folder on the server', { name }),
+                    )
+                    return
+                }
+                // The drop planner already owns the overwrite wording; asking
+                // here with a second copy of it made the two messages drift.
+                if (!await this.confirmOverwrite([name], destination)) {
+                    return
+                }
+            }
+
+            try {
+                await this.fileTransfers.upload(this.sftp, remotePath, localPath, name, info.size, info.mode & 0o7777)
+                // Only refresh when the user is still looking at the target
+                // directory; navigating away must not be undone by a refresh.
+                if (this.path === destination) {
+                    await this.refreshListing()
+                }
+                this.notices.notice(this.i18n.t(
+                    '{sent, plural, =1 {# file} other {# files}} sent to {destination}',
+                    { sent: 1, destination },
+                ))
+            } catch (e) {
+                this.notices.error(this.i18n.t('Could not send {name}', { name }), String(e))
+            }
+        })
+    }
+
+    /**
+     * Downloads one remote file into `localDir`.
+     *
+     * The destination is the directory the local pane is showing — never a
+     * temporary folder. `freeLocalName()` picks an Explorer-style suffix when
+     * a same-name file is already there, so nothing is overwritten silently.
+     *
+     * Answers the path actually written, or null when there is nothing to
+     * refresh (no session, failed transfer).
+     */
+    async downloadToLocal (item: SFTPFile, localDir: string): Promise<string|null> {
+        return await this.zone.run(async () => {
+            if (!this.sftp) {
+                return null
+            }
+            const target = freeLocalName(localDir, item.name)
+            try {
+                await this.fileTransfers.download(this.sftp, item.fullPath, target, item.name, item.size, item.mode)
+                this.notices.notice(this.i18n.t('{name} downloaded to {base}', { name: item.name, base: localDir }))
+                return target
+            } catch (e) {
+                this.notices.error(this.i18n.t('Could not download {name}', { name: item.name }), String(e))
+                return null
+            }
+        })
     }
 
     /**
@@ -1837,13 +1979,26 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         }
         // Pushed after the pop() above, never before: the native "Delete" entry
         // is dropped by position, so inserting anything first would remove the
-        // wrong item. The one route to the OS association, and only from here —
+        // wrong item.
+        items.push({
+            label: this.i18n.t('Copy full path'),
+            click: () => this.platform.setClipboard({ text: item.fullPath }),
+        })
+        // The one route to the OS association, and only from here —
         // a double-click can never reach it. Windows-only: `OpenAs_RunDLL` has
         // no equivalent elsewhere, and this plugin is published publicly.
         if (!this.isDirectoryEntry(item) && this.editors.canOpenWith) {
             items.push({
                 label: this.i18n.t('Open with...'),
                 click: () => { void this.openEntry(item, 'openWith') },
+            })
+        }
+        // Double-click is the transfer gesture now, so editing has to stay
+        // reachable from an explicit entry instead of disappearing with it.
+        if (!this.isDirectoryEntry(item)) {
+            items.push({
+                label: this.i18n.t('Edit on the server...'),
+                click: () => { void this.openEntry(item, 'editor') },
             })
         }
         items.push({
@@ -1955,6 +2110,17 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         }
         const target = event.target as HTMLElement
         if (target.closest('input, textarea, [contenteditable]')) {
+            return
+        }
+        // A local-pane Delete belongs to that pane's own host listener; if
+        // propagation ever reaches here, never act on it.
+        if (target.closest('sidebar-plus-sftp-local')) {
+            return
+        }
+        // Any open modal — the local pane's delete confirmation included —
+        // owns the keyboard. Without this, a second Delete would stack a
+        // remote confirmation on top of the local one.
+        if (document.querySelector('ngb-modal-window')) {
             return
         }
         const items = this.selectedItems()

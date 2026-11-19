@@ -603,15 +603,6 @@ msgstr "Ningún elemento oculto en este espacio de trabajo."
 msgid "Show again"
 msgstr "Volver a mostrar"
 
-msgid "Connected"
-msgstr "Conectado"
-
-msgid "Disconnected"
-msgstr "Desconectado"
-
-msgid "No session"
-msgstr "Ninguna sesión"
-
 msgid "{count} tunnel(s) mounted on this session"
 msgstr "{count} túnel(es) montado(s) en esta sesión"
 
@@ -1304,3 +1295,39 @@ msgstr "Abrir el repositorio del proyecto"
 
 msgid "Open the author profile on GitHub"
 msgstr "Abrir el perfil del autor en GitHub"
+
+msgid "Home folder"
+msgstr "Carpeta personal"
+
+msgid "Could not read {path}"
+msgstr "No se pudo leer {path}"
+
+msgid "No active SSH session — nothing was sent"
+msgstr "No hay ninguna sesión SSH activa — no se envió nada"
+
+msgid "Edit on the server..."
+msgstr "Editar en el servidor..."
+
+msgid "Could not send {name}"
+msgstr "No se pudo enviar {name}"
+
+msgid "Could not download {name}"
+msgstr "No se pudo descargar {name}"
+
+msgid "{name} is not a file"
+msgstr "{name} no es un archivo"
+
+msgid "{name} is a folder on the server"
+msgstr "{name} es una carpeta en el servidor"
+
+msgid "This folder is empty."
+msgstr "Esta carpeta está vacía."
+
+msgid "Send to the remote pane"
+msgstr "Enviar al panel remoto"
+
+msgid "The name cannot contain path separators"
+msgstr "El nombre no puede contener separadores de ruta"
+
+msgid "Copy full path"
+msgstr "Copiar ruta completa"
