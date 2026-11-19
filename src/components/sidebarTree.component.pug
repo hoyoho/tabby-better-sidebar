@@ -446,6 +446,7 @@
                                 ng-container(*ngTemplateOutlet='recursiveGroup; context: {$implicit: child, depth: depth + 1}')
 .grabber(
     [class.resizing]='panelIsResizing',
+    [style.transform]='grabberTransform',
     (mousedown)='startResize($event)'
 )
 

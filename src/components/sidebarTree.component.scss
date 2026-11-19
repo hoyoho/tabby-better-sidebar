@@ -11,6 +11,19 @@
 // top of the footer, the same rule the layout enforces for the content region.
 $sidebar-footer-height: 26px;
 
+// How long a released resize animates for. The grabber's transform and the
+// host's width MUST share this value: they run in opposite directions at the
+// same moment, and only cancel out — leaving the handle where the pointer let
+// go of it — while the two durations match.
+$sidebar-resize-duration: 120ms;
+
+// Resize handle geometry. `right` is derived from the width so the handle stays
+// centred on the host's edge, and the two z-indexes bracket app content while
+// staying under the z-index 100 floating popups.
+$sidebar-grabber-width: 6px;
+$sidebar-grabber-z: 10;
+$sidebar-grabber-resizing-z: 50;
+
 sidebar-plus-tree {
     // A column of two flow members — the content region and the footer. The
     // footer used to be absolute over a padding-bottom reserve, which was a
@@ -753,20 +766,42 @@ sidebar-plus-tree {
 // restyle a handle elsewhere in the app.
 sidebar-plus-tree .grabber {
     position: absolute;
-    z-index: 10;
-    width: 6px;
-    height: 100%;
-    display: block;
+    z-index: $sidebar-grabber-z;
+    width: $sidebar-grabber-width;
+    // Stretched between the host's edges rather than `height: 100%`: the host
+    // is a flex column whose real height the handle must follow, and 100% of
+    // an absolutely-positioned box resolved against the wrong reference in
+    // some layouts.
     top: 0;
-    right: -3px;
+    bottom: 0;
+    display: block;
+    right: -0.5 * $sidebar-grabber-width;
     cursor: col-resize;
     background-color: transparent;
-    transition: background-color 100ms ease;
+    // transform is the drag preview (see grabberTransform): animated over the
+    // same duration as the host's width transition so the release lands
+    // smoothly.
+    transition: background-color 100ms ease, transform $sidebar-resize-duration ease;
 
-    &:hover,
-    &.resizing {
+    &:hover {
         background-color: var(--theme-primary);
     }
+
+    // While dragging the handle must follow the pointer 1:1 — hence no
+    // transform transition here — keep its highlight even after it has moved
+    // out from under the cursor, and paint above the pane header it crosses.
+    &.resizing {
+        z-index: $sidebar-grabber-resizing-z;
+        background-color: var(--theme-primary);
+        will-change: transform;
+        transition: background-color 100ms ease;
+    }
+}
+
+// Width only animates outside a drag; see $sidebar-resize-duration for why the
+// two durations must match.
+sidebar-plus-tree:not(.resizing) {
+    transition: width $sidebar-resize-duration ease;
 }
 
 .group-context-menu,
