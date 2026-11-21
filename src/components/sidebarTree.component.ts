@@ -46,6 +46,9 @@ import { SidebarPlusWorkspaceStore } from '../workspaceStore.service'
 import { SidebarPlusTreeDragController } from '../treeDrag'
 import { SidebarPlusProfileActionsService, ProfileTemplateEntry } from '../profileActions.service'
 
+/** Must match $sidebar-resize-duration in sidebarTree.component.scss. */
+const RESIZE_ANIMATION_MS = 125
+
 @Component({
     selector: 'sidebar-plus-tree',
     template: require('./sidebarTree.component.pug'),
@@ -162,6 +165,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      */
     private resize = new SidebarResizeController(window.localStorage, {
         onCommit: (_width, collapsed) => {
+            this.commitCollapsed = collapsed
             if (collapsed) {
                 // Dragged shut: hide the sidebar. `showProfileTree` gates the
                 // whole sidebar area, this owner contribution included. The
@@ -178,9 +182,23 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         },
     })
 
+    /** Set while the released width animates to its committed value. */
+    committing = false
+    /** Screen position of the grabber during that animation (fixed, like the pane splitter). */
+    commitX: number|null = null
+    commitTop = 0
+    commitHeight = 0
+    private commitTimer: ReturnType<typeof setTimeout>|null = null
+    private commitCollapsed = false
+
     @HostBinding('style.width.px')
     get panelWidth (): number {
         return this.resize.width
+    }
+
+    @HostBinding('class.resizing')
+    get hostResizing (): boolean {
+        return this.panelIsResizing
     }
 
     ////// RECENT PROFILES //////
@@ -552,6 +570,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // unmounts it when the plugin is disabled — so clear the app-wide
         // cursor and the drag state here instead of leaving them stuck.
         this.resize.cancel()
+        this.cancelCommitAnimation()
         this.live.stop()
         this.configSubscription?.unsubscribe()
         this.hotkeySubscription?.unsubscribe()
@@ -1574,6 +1593,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     ////// RESIZING //////
     startResize (event: MouseEvent): void {
+        this.cancelCommitAnimation()
         this.resize.start(event.clientX)
         event.preventDefault()
     }
@@ -1593,7 +1613,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     @HostListener('document:mouseup')
     stopResize (): void {
-        this.resize.commit()
+        this.commitResize()
     }
 
     /**
@@ -1605,12 +1625,56 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      */
     @HostListener('document:mouseleave')
     onResizeMouseLeave (): void {
-        this.resize.commit()
+        this.commitResize()
     }
 
     @HostListener('window:blur')
     onResizeWindowBlur (): void {
+        this.commitResize()
+    }
+
+    /**
+     * Commit the previewed width and keep the grabber at the release position
+     * while the host width animates to it (same cadence as the pane splitter).
+     * The grabber is fixed for one animation because it is anchored to the
+     * animated host edge; leaving it anchored would drag it back to the old
+     * edge first.
+     */
+    private commitResize (): void {
+        if (!this.panelIsResizing) {
+            return
+        }
+        const rect = this.elementRef.nativeElement.getBoundingClientRect()
+        const startWidth = this.resize.width
+        this.commitCollapsed = false
         this.resize.commit()
+        if (!this.commitCollapsed) {
+            const edge = rect.right + (this.resize.width - startWidth)
+            this.startCommitAnimation(rect, edge)
+        }
+    }
+
+    private startCommitAnimation (rect: DOMRect, edge: number): void {
+        this.cancelCommitAnimation()
+        this.committing = true
+        // The grabber is 6px wide and centred on the host's padding edge; the
+        // host has a 1px right border, so the left edge is the final border
+        // edge minus 4px (1px border + half the grabber).
+        this.commitX = edge - 4
+        this.commitTop = rect.top
+        this.commitHeight = rect.height
+        this.commitTimer = setTimeout(() => {
+            this.commitTimer = null
+            this.committing = false
+        }, RESIZE_ANIMATION_MS)
+    }
+
+    private cancelCommitAnimation (): void {
+        if (this.commitTimer) {
+            clearTimeout(this.commitTimer)
+            this.commitTimer = null
+        }
+        this.committing = false
     }
 
     get panelIsResizing (): boolean {

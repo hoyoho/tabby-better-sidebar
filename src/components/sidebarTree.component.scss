@@ -11,6 +11,11 @@
 // top of the footer, the same rule the layout enforces for the content region.
 $sidebar-footer-height: 26px;
 
+// Release animation for the host width, matching the pane splitter's 125ms.
+// The grabber is fixed in place for this duration (see .grabber.committing),
+// so only the sidebar edge and its content glide to the new width.
+$sidebar-resize-duration: 125ms;
+
 // Resize handle geometry. `right` is derived from the width so the handle stays
 // centred on the host's edge, and the two z-indexes bracket app content while
 // staying under the z-index 100 floating popups.
@@ -32,6 +37,13 @@ sidebar-plus-tree {
     background-color: var(--sidebar-plus-bg, var(--theme-bg-more-2));
     position: relative;
     border-right: 1px solid var(--theme-secondary);
+    // Released width glides to the previewed value like a pane view; disabled
+    // during the gesture so the terminal is not reflowed on every mousemove.
+    transition: width $sidebar-resize-duration ease;
+
+    &.resizing {
+        transition: none;
+    }
 }
 
 // Scoped to the component's own tag, not left as a bare `input` selector.
@@ -772,10 +784,9 @@ sidebar-plus-tree .grabber {
     right: -0.5 * $sidebar-grabber-width;
     cursor: col-resize;
     background-color: transparent;
-    // No transform transition: on release the width and the transform are
-    // committed together in one relayout (like the pane splitter), so the
-    // handle lands exactly where the pointer left it. Animating them lets the
-    // terminal reflow lag the compositor and makes the handle spring back.
+    // The grabber itself never animates: during the drag it follows the pointer
+    // through the transform, and on release it is pinned for the width
+    // animation (see .committing). Only the hover colour transitions.
     transition: background-color 100ms ease;
 
     &:hover {
@@ -791,13 +802,24 @@ sidebar-plus-tree .grabber {
         will-change: transform;
         transition: background-color 100ms ease;
     }
+
+    // Release: the host width glides to the committed value, so the grabber
+    // must stop being anchored to that edge for the duration. Pin it at the
+    // release position (inline left/top/height); when the animation ends the
+    // host edge is there and it can return to its normal `right` anchor.
+    &.committing {
+        position: fixed;
+        right: auto;
+        bottom: auto;
+        z-index: $sidebar-grabber-resizing-z;
+        background-color: var(--theme-primary);
+        transform: none;
+    }
 }
 
-// Width follows the committed value immediately (the host binding in the
-// component sets it); there is deliberately no width transition. A width
-// transition would reflow the terminal while the grabber's compositor
-// transition runs, and the two can desync into the visible rebound this
-// gesture used to have.
+// The host width is what animates on release (see the `transition` on the host
+// rule above). The grabber stays fixed at the release position for the same
+// duration, so it does not get dragged back to the old edge first.
 
 .group-context-menu,
 .group-context-submenu,

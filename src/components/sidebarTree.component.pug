@@ -329,7 +329,11 @@
                                 ng-container(*ngTemplateOutlet='recursiveGroup; context: {$implicit: child, depth: depth + 1}')
 .grabber(
     [class.resizing]='panelIsResizing',
+    [class.committing]='committing',
     [style.transform]='grabberTransform',
+    [style.left.px]='committing ? commitX : null',
+    [style.top.px]='committing ? commitTop : null',
+    [style.height.px]='committing ? commitHeight : null',
     (mousedown)='startResize($event)'
 )
 

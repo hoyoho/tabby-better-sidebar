@@ -73,9 +73,10 @@ export interface SidebarResizeHooks {
  * While a gesture is active the sidebar width does not change — only
  * `grabberTransform` follows the pointer — and `commit()` folds the preview
  * into `width` once, on release. Writing the width on every mousemove would
- * reflow the terminal under the pointer. The commit is immediate (the host
- * applies the new width and clears the transform in one relayout, with no CSS
- * transition), so the handle lands where the pointer released it.
+ * reflow the terminal under the pointer. On release the host animates to the
+ * committed width while the grabber is pinned at the release position, so the
+ * handle lands where the pointer released it and the content glides like a
+ * pane view.
  */
 export class SidebarResizeController {
     width: number
