@@ -56,6 +56,7 @@ import { BetterPanelContribution, electBetterPanelHost, SIDEBAR_PANEL_TOKEN } fr
 import { openProfileModal, PROFILE_MODAL_UNAVAILABLE } from '../profileModal'
 import { TranslatableMessage } from '../i18nMessage'
 import { clampInViewport } from '../viewport'
+import { SidebarResizeController } from '../sidebarResize'
 import { formatSpeed, SidebarPlusTransfersService } from '../transfersRegistry.service'
 
 interface CollapsableProfileGroup extends ProfileGroup {
@@ -127,36 +128,6 @@ const TUNNEL_LOSS_GRACE_MS = 60_000
 /** How long a « non remonté » row lingers after a reconnection before the loss is considered acknowledged. */
 const TUNNEL_NOT_RESTORED_MS = 30_000
 
-////// SIDEBAR WIDTH //////
-/** Bounds of a usable sidebar width, in px. */
-const PANEL_MIN_WIDTH = 200
-const PANEL_MAX_WIDTH = 600
-/**
- * Released below this width the sidebar closes entirely (matching Tabby's own
- * sidebar); it can be re-opened from the settings or the hotkey.
- */
-const PANEL_COLLAPSE_DRAG_WIDTH = 30
-/**
- * Width used when nothing usable is persisted — a missing key, a hand-edited
- * one, or an empty localStorage slot whose `parseInt()` is NaN. Deliberately
- * inside [PANEL_MIN_WIDTH, PANEL_MAX_WIDTH].
- */
-const DEFAULT_PANEL_WIDTH = 300
-
-/** The one place that reads the persisted width; NaN and absent keys fall back to the default. */
-function readStoredWidth (): number {
-    const stored = parseInt(window.localStorage.sidebarPlusTreeWidth ?? '', 10)
-    return Number.isFinite(stored) ? stored : DEFAULT_PANEL_WIDTH
-}
-
-/** Writes only on change, so startup clamping does not rewrite the key on every launch. */
-function writeStoredWidth (width: number): void {
-    const value = width.toString()
-    if (window.localStorage.sidebarPlusTreeWidth !== value) {
-        window.localStorage.sidebarPlusTreeWidth = value
-    }
-}
-
 /** One row of the "Sessions actives" section — a live terminal tab, flattened out of its split if it is in one. */
 interface ActiveSession {
     tab: BaseTabComponent
@@ -192,13 +163,6 @@ interface SessionGroup {
     category: string
     label: string
     sessions: ActiveSession[]
-}
-
-/** One in-progress resize gesture: where it started and how far the grabber has been previewed. */
-interface ResizeDrag {
-    startX: number
-    startWidth: number
-    offset: number
 }
 
 @Component({
@@ -295,20 +259,32 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private loadTreeRequestId = 0
 
     /**
-     * Width committed to the sidebar and persisted across restarts. Read once
-     * here (see readStoredWidth) and clamped in ngOnInit() before the first
-     * paint; the host binding is what actually sizes the element.
+     * Width committed to the sidebar and persisted across restarts. The host
+     * binding is what actually sizes the element; the controller owns the
+     * gesture state machine and the localStorage value (see sidebarResize.ts).
      */
+    private resize = new SidebarResizeController(window.localStorage, {
+        onCommit: (_width, collapsed) => {
+            if (collapsed) {
+                // Dragged shut: hide the sidebar. `showProfileTree` gates the
+                // whole sidebar area, this owner contribution included. The
+                // committed width is usable, so re-opening is not 0px.
+                this.config.store.showProfileTree = false
+                this.config.save()
+            }
+        },
+        setCursor: resizing => {
+            // Set on <body> rather than only on the grabber: the pointer
+            // routinely leaves the 6px handle mid-drag, and the cursor has to
+            // stay a resize cursor over the terminal until release.
+            document.body.style.cursor = resizing ? 'col-resize' : ''
+        },
+    })
+
     @HostBinding('style.width.px')
-    panelWidth = readStoredWidth()
-    /**
-     * The in-progress resize gesture, or null at rest. One object rather than
-     * four loose fields, so "offset without a drag" cannot be represented.
-     * While it is set the sidebar width does not change — only `drag.offset`
-     * does, through the grabber's transform — and commitResize() folds it into
-     * panelWidth once, on release.
-     */
-    private drag: ResizeDrag|null = null
+    get panelWidth (): number {
+        return this.resize.width
+    }
 
     ////// ACTIVE SESSIONS //////
     /**
@@ -669,10 +645,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     async ngOnInit (): Promise<void> {
         // Clamp the persisted width before the first paint: a hand-edited or
         // stale value (e.g. left behind by a drag past the window edge) can
-        // fall outside the usable range. Persist the repaired value right away
-        // so every later startup starts from it instead of re-clamping.
-        this.panelWidth = this.clampWidth(this.panelWidth)
-        writeStoredWidth(this.panelWidth)
+        // fall outside the usable range. The controller re-persists the
+        // repaired value right away so every later startup starts from it.
+        this.resize.clampAndPersist()
         // Apply the background plugin's transparency settings (if any) before
         // the first paint so the sidebar doesn't flash opaque.
         this.applyBackgroundTransparency()
@@ -772,10 +747,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // A resize gesture can outlive the component — SidebarPlusMountService
         // unmounts it when the plugin is disabled — so clear the app-wide
         // cursor and the drag state here instead of leaving them stuck.
-        if (this.drag) {
-            this.drag = null
-            this.setResizeCursor(false)
-        }
+        this.resize.cancel()
         this.statusSubscription?.unsubscribe()
         this.activeTabFocusSub?.unsubscribe()
         this.tabsChangedSubscription?.unsubscribe()
@@ -1976,17 +1948,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     ////// RESIZING //////
     startResize (event: MouseEvent): void {
-        // Clamped up front so a stale or NaN committed width cannot poison
-        // every position computed during the gesture.
-        this.drag = {
-            startX: event.clientX,
-            startWidth: this.clampWidth(this.panelWidth),
-            offset: 0,
-        }
-        // Set on <body> rather than only on the grabber: the pointer routinely
-        // leaves the 6px handle mid-drag, and the cursor has to stay a resize
-        // cursor over the terminal until release.
-        this.setResizeCursor(true)
+        this.resize.start(event.clientX)
         event.preventDefault()
     }
 
@@ -1995,28 +1957,17 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      * metadata is keyed by event name (`bindings.listeners[eventName]` in the
      * compiler facade), so a second @HostListener('document:mousemove') on
      * another method would overwrite this one and silently drop the resize
-     * preview. One listener, two private handlers, no collision.
+     * preview. One listener, two handlers, no collision.
      */
     @HostListener('document:mousemove', ['$event'])
     onDocumentMouseMove (event: MouseEvent): void {
         this.onDragMouseMove(event)
-        this.onResizeMouseMove(event)
-    }
-
-    private onResizeMouseMove (event: MouseEvent): void {
-        if (!this.drag) { return }
-        // Tracks the mouse all the way to 0 so the handle can reach the
-        // collapse threshold; the min/close decision is deferred to release so
-        // the handle never teleports under the cursor. Preview only: the
-        // sidebar's real width is committed in commitResize(), because writing
-        // panelWidth here would reflow the terminal on every mousemove.
-        const width = this.clampWidth(this.drag.startWidth + event.clientX - this.drag.startX, 0)
-        this.drag.offset = width - this.drag.startWidth
+        this.resize.move(event.clientX)
     }
 
     @HostListener('document:mouseup')
     stopResize (): void {
-        this.commitResize()
+        this.resize.commit()
     }
 
     /**
@@ -2028,51 +1979,21 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      */
     @HostListener('document:mouseleave')
     onResizeMouseLeave (): void {
-        this.commitResize()
+        this.resize.commit()
     }
 
     @HostListener('window:blur')
     onResizeWindowBlur (): void {
-        this.commitResize()
-    }
-
-    private commitResize (): void {
-        const drag = this.drag
-        if (!drag) { return }
-        try {
-            // Clamped to [0, max] first so it can be compared against the
-            // collapse threshold; assigning through clampWidth() then snaps a
-            // value still under PANEL_MIN_WIDTH to the minimum width.
-            const width = this.clampWidth(drag.startWidth + drag.offset, 0)
-            this.panelWidth = this.clampWidth(width)
-            if (width < PANEL_COLLAPSE_DRAG_WIDTH) {
-                // Dragged shut: hide the sidebar. `showProfileTree` gates the
-                // whole sidebar area, this owner contribution included. The
-                // width committed just above is usable, so re-opening is not 0px.
-                this.config.store.showProfileTree = false
-                this.config.save()
-            }
-            writeStoredWidth(this.panelWidth)
-        } finally {
-            // Cleanup must run even if config.save() throws, otherwise the
-            // grabber stays offset and the app-wide cursor stays stuck.
-            this.drag = null
-            this.setResizeCursor(false)
-        }
+        this.resize.commit()
     }
 
     get panelIsResizing (): boolean {
-        return this.drag !== null
+        return this.resize.isResizing
     }
 
-    /**
-     * Translation applied to the grabber during a drag, or null at rest. The
-     * sidebar width is untouched mid-drag (see onResizeMouseMove), so the
-     * handle — not the panel — is what follows the pointer.
-     */
+    /** Translation applied to the grabber during a drag, or null at rest (see sidebarResize.ts). */
     get grabberTransform (): string|null {
-        const drag = this.drag
-        return drag && drag.offset !== 0 ? `translateX(${drag.offset}px)` : null
+        return this.resize.grabberTransform
     }
 
     /**
@@ -2084,20 +2005,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     @HostBinding('class.resizing')
     get hostResizing (): boolean {
         return this.panelIsResizing
-    }
-
-    /**
-     * Clamped to the usable range; `min` is 0 while dragging so the handle can
-     * reach the collapse zone. NaN falls back to the default instead of
-     * propagating into geometry.
-     */
-    private clampWidth (width: number, min = PANEL_MIN_WIDTH): number {
-        const safe = Number.isFinite(width) ? width : DEFAULT_PANEL_WIDTH
-        return Math.min(PANEL_MAX_WIDTH, Math.max(min, safe))
-    }
-
-    private setResizeCursor (on: boolean): void {
-        document.body.style.cursor = on ? 'col-resize' : ''
     }
 
     ////// DRAG DIRECTION RESCUE //////
