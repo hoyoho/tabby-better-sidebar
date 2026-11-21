@@ -504,7 +504,10 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             const t = bg.backgroundFooterTransparent
             host.style.setProperty(
                 '--sidebar-plus-footer-bg',
-                `color-mix(in srgb, rgba(0,0,0,1) ${100 - t}%, transparent)`,
+                // Mix the sidebar's own surface, not opaque black: the footer
+                // is part of the same panel as the session rows, and a black
+                // bar made the signature unreadable on light themes.
+                `color-mix(in srgb, var(--sidebar-plus-bg, var(--theme-bg-more-2)) ${100 - t}%, transparent)`,
             )
         } else {
             host.style.removeProperty('--sidebar-plus-footer-bg')

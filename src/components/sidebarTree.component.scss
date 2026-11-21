@@ -1360,10 +1360,11 @@ sidebar-plus-tree .sidebar-plus-footer {
     justify-content: space-between;
     gap: 8px;
     padding: 0 6px 0 10px;
-    // Driven by --sidebar-plus-footer-bg so the footer follows the background
-    // plugin's footer-transparency setting. Falls back to transparent (inherits
-    // the host background) when the plugin is absent or disabled.
-    background-color: var(--sidebar-plus-footer-bg, transparent);
+    // Driven by --sidebar-plus-footer-bg: the background plugin's footer
+    // slider mixes the sidebar's own surface (not an opaque black), so the
+    // footer stays readable and matches the session rows above it. Falls back
+    // to the sidebar background when the plugin is absent or disabled.
+    background-color: var(--sidebar-plus-footer-bg, var(--sidebar-plus-bg, var(--theme-bg-more-2)));
     border-top: 1px solid var(--theme-secondary);
 
     .sidebar-plus-footer-brand {
