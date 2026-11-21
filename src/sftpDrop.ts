@@ -8,8 +8,10 @@ import { SidebarPlusI18nService } from './i18n'
 import { SidebarPlusNoticesService } from './notices.service'
 import { readRemoteEntry } from './remoteEntry'
 import { humanSize as formatSize } from './sftpFormat'
+import { overwritePrompt } from './sftpMessages'
 import { SidebarPlusTransfersService } from './transfersRegistry.service'
-import { canMoveSourcesTo, destinationFor, DropPlan, INTERNAL_DRAG_TYPE, isSelfOrDescendant, PlannedUpload, planFromEntries } from './sftpDropModel'
+import { canMoveSourcesTo, destinationFor, INTERNAL_DRAG_TYPE, isSelfOrDescendant, planFromEntries } from './sftpDropModel'
+import type { DropPlan, PlannedUpload } from './sftpDropModel'
 
 /** The live SFTP transport, borrowed from the one member that publicly exposes its type. */
 type SftpSession = SFTPPanelComponent['sftp']
@@ -665,20 +667,12 @@ export class SftpDropController {
     }
 
     private async confirmOverwrite (collisions: string[], destination: string): Promise<boolean> {
-        const named = collisions.slice(0, SftpDropController.COLLISIONS_NAMED)
-        const rest = collisions.length - named.length
-        const list = rest > 0
-            ? this.i18n.t('{names}, and {rest, plural, =1 {# more} other {# more}}', { names: named.join(', '), rest })
-            : named.join(', ')
-        const message = collisions.length > 1
-            ? this.i18n.t(
-                '{count} files already exist under {destination} and will be overwritten: {list}. Continue?',
-                { count: collisions.length, destination, list },
-            )
-            : this.i18n.t(
-                'A file already exists under {destination} and will be overwritten: {list}. Continue?',
-                { destination, list },
-            )
+        const message = overwritePrompt(
+            collisions,
+            destination,
+            (key, params) => this.i18n.t(key, params),
+            SftpDropController.COLLISIONS_NAMED,
+        )
         return await this.host.ask(message, this.i18n.t('Overwrite'))
     }
 

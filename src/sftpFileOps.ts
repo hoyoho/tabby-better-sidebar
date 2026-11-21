@@ -2,6 +2,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { ConfigService, NotificationsService, PromptModalComponent } from 'tabby-core'
 import { SFTPFile, SFTPPanelComponent } from 'tabby-ssh'
 import { readRemoteEntry } from './remoteEntry'
+import { renameTargetPath } from './sftpPaths'
 import { SidebarPlusNoticesService } from './notices.service'
 import { SidebarPlusI18nService } from './i18n'
 import { ConfirmModalComponent } from './components/confirmModal.component'
@@ -26,14 +27,6 @@ export interface SftpFileOperationsHost {
     navigate: (path: string) => Promise<void>
     /** False while the panel is cached-but-detached for another SSH tab. */
     isPanelAttached: () => boolean
-}
-
-/** The remote path `item` is renamed to, or null when `name` is not a plain name. */
-export function renameTargetPath (path: string, name: string): string|null {
-    if (!name || name.includes('/')) {
-        return null
-    }
-    return path.endsWith('/') ? `${path}${name}` : `${path}/${name}`
 }
 
 /**

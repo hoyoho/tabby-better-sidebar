@@ -22,6 +22,7 @@ import { SidebarPlusTransfersService } from '../transfersRegistry.service'
 import { clampInViewport } from '../viewport'
 import { extension as formatExtension, fullDate as formatFullDate, humanSize as formatSize, isHidden as formatIsHidden, longMode as formatLongMode, octalMode as formatOctalMode, sameEntry as sameSftpEntry, shortDate as formatShortDate } from '../sftpFormat'
 import { reuseListingRows, sortAndFilterListing } from '../sftpListing'
+import { overwritePrompt } from '../sftpMessages'
 import { SftpDropController } from '../sftpDrop'
 import { SftpFileOperationsController } from '../sftpFileOps'
 import { ConfirmModalComponent } from './confirmModal.component'
@@ -1014,31 +1015,18 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         return await modal.result.catch(() => false)
     }
 
-    /** Names enumerated up to this many; past it, a count. A modal listing forty files says nothing. */
-    private static readonly COLLISIONS_NAMED = 5
-
     /**
      * The overwrite question shared with the local-pane upload path.
      *
-     * The drop planner has the same wording in `SftpDropController`; this copy
-     * stays because the local pane uploads through `fileTransfers` directly and
-     * never goes through that controller.
+     * The wording itself lives in `sftpMessages.ts`, also used by
+     * `SftpDropController`; only the dialog is per-caller.
      */
     private async confirmOverwrite (collisions: string[], destination: string): Promise<boolean> {
-        const named = collisions.slice(0, SidebarPlusSftpBrowserComponent.COLLISIONS_NAMED)
-        const rest = collisions.length - named.length
-        const list = rest > 0
-            ? this.i18n.t('{names}, and {rest, plural, =1 {# more} other {# more}}', { names: named.join(', '), rest })
-            : named.join(', ')
-        const message = collisions.length > 1
-            ? this.i18n.t(
-                '{count} files already exist under {destination} and will be overwritten: {list}. Continue?',
-                { count: collisions.length, destination, list },
-            )
-            : this.i18n.t(
-                'A file already exists under {destination} and will be overwritten: {list}. Continue?',
-                { destination, list },
-            )
+        const message = overwritePrompt(
+            collisions,
+            destination,
+            (key, params) => this.i18n.t(key, params),
+        )
         return await this.ask(message, this.i18n.t('Overwrite'))
     }
 
