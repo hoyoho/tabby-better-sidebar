@@ -47,7 +47,7 @@
     "build": "webpack --progress --color",
     "build:prod": "webpack --progress --color --mode production && node scripts/strip-source-maps.js",
     "watch": "webpack --progress --color --watch",
-    "test": "node --experimental-transform-types --test tests/sftpFormat.test.mjs tests/sidebarResize.test.mjs",
+    "test": "node --experimental-transform-types --test tests/sftpFormat.test.mjs tests/sidebarResize.test.mjs tests/sidebarTreeModel.test.mjs",
     "lint:airules": "html-validate \".AIRules/**/*.html\"",
     "lint:i18n": "node scripts/lint-i18n.js",
     "prepublishOnly": "npm run build:prod"

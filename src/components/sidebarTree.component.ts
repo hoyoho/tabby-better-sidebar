@@ -57,12 +57,8 @@ import { openProfileModal, PROFILE_MODAL_UNAVAILABLE } from '../profileModal'
 import { TranslatableMessage } from '../i18nMessage'
 import { clampInViewport } from '../viewport'
 import { SidebarResizeController } from '../sidebarResize'
+import { CollapsableProfileGroup, groupIdFromContainerId, intoCollapsable, isSelfOrDescendant, isSyntheticGroupId, moveSelectionWithinArray, parentGroupIdFromGroupContainerId, renameOrderKey, sortGroupIdsByDepthDesc } from '../sidebarTreeModel'
 import { formatSpeed, SidebarPlusTransfersService } from '../transfersRegistry.service'
-
-interface CollapsableProfileGroup extends ProfileGroup {
-    collapsed: boolean
-    children: PartialProfileGroup<CollapsableProfileGroup>[]
-}
 
 /** Duck-typed shape of tabs that carry a launching profile and a live session (e.g. BaseTerminalTabComponent). */
 interface ProfileBackedTab {
@@ -964,7 +960,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         groups.sort((a, b) => (a.id === 'built-in' || !a.editable ? 1 : 0) - (b.id === 'built-in' || !b.editable ? 1 : 0))
         groups.sort((a, b) => (a.id === 'ungrouped' ? 0 : 1) - (b.id === 'ungrouped' ? 0 : 1))
 
-        const profileGroups = groups.map(g => SidebarPlusTreeComponent.intoCollapsable(g, profileGroupCollapsed[g.id] ?? false))
+        const profileGroups = groups.map(g => intoCollapsable(g, profileGroupCollapsed[g.id] ?? false))
         const rootGroups = this.applyFavorites(this.profilesService.buildGroupTree(profileGroups), workspace, profileGroups)
 
         if (requestId !== this.loadTreeRequestId) {
@@ -1333,7 +1329,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // nodes out of the result: run over the matches alone, it would drop
         // the children of a matching folder whose parent did not match.
         const tree = this.profilesService.buildGroupTree(
-            structuredClone(this.rawGroupsSnapshot).map(g => SidebarPlusTreeComponent.intoCollapsable(g, false)),
+            structuredClone(this.rawGroupsSnapshot).map(g => intoCollapsable(g, false)),
         )
         const matchedIds = new Set(matches.map(g => g.id))
         const found: PartialProfileGroup<ProfileGroup>[] = []
@@ -2098,35 +2094,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         window.localStorage.sidebarPlusGroupCollapsed = JSON.stringify(profileGroupCollapsed)
     }
 
-    private static intoCollapsable (group: PartialProfileGroup<ProfileGroup>, collapsed: boolean): PartialProfileGroup<CollapsableProfileGroup> {
-        return { ...group, collapsed } as PartialProfileGroup<CollapsableProfileGroup>
-    }
-
-    private static groupIdFromContainerId (containerId: string): string {
-        return containerId.replace(/^profiles-/, '')
-    }
-
-    /**
-     * Group ids that name a view, not a folder.
-     *
-     * Their rows live in real folders elsewhere — "Épinglés" gathers pinned
-     * profiles from anywhere, the search group flattens the whole tree — so
-     * their displayed order describes nothing that can be written back.
-     * `ungrouped` is deliberately absent: it really is where profiles with no
-     * group live, and its order is theirs.
-     */
-    private static readonly SYNTHETIC_GROUP_IDS = ['favorites', 'search']
-
-    private static isSyntheticGroupId (groupId: string): boolean {
-        return SidebarPlusTreeComponent.SYNTHETIC_GROUP_IDS.includes(groupId)
-    }
-
-    /** `groups-<id>` → that group's id, `groups-root` → null (the shape persistGroupOrder() expects for the root level). */
-    private static parentGroupIdFromGroupContainerId (containerId: string): string|null {
-        const id = containerId.replace(/^groups-/, '')
-        return id === 'root' ? null : id
-    }
-
     ////// FAVORITES //////
     isFavorite (profile: PartialProfile<Profile>): boolean {
         return !!profile.id && this.favoriteIds.includes(profile.id)
@@ -2229,7 +2196,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return groups
         }
 
-        const favoritesGroup = SidebarPlusTreeComponent.intoCollapsable(
+        const favoritesGroup = intoCollapsable(
             {
                 id: 'favorites',
                 name: this.i18n.t('Pinned'),
@@ -3521,7 +3488,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return this.hoveredGroupId === group.id &&
                 group.id !== this.draggedGroupId &&
                 !!group.editable &&
-                !this.isSelfOrDescendant(group.id, this.draggedGroupId)
+                !isSelfOrDescendant(group.id, this.draggedGroupId, this.rawGroupsSnapshot)
         }
         if (this.draggedProfileId) {
             return this.hoveredProfileTargetGroupId === group.id &&
@@ -3571,7 +3538,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return
         }
 
-        const sourceGroupId = SidebarPlusTreeComponent.groupIdFromContainerId(event.previousContainer.id)
+        const sourceGroupId = groupIdFromContainerId(event.previousContainer.id)
 
         if (event.previousContainer === event.container) {
             // Reordering inside one folder goes through the same placement
@@ -3583,7 +3550,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             const movingIds = this.selectedProfileIds.size > 1 && this.isProfileSelected(draggedProfile)
                 ? this.selectedProfileIds
                 : new Set(draggedProfile.id ? [draggedProfile.id] : [])
-            SidebarPlusTreeComponent.moveSelectionWithinArray(
+            moveSelectionWithinArray(
                 event.container.data,
                 movingIds,
                 event.currentIndex,
@@ -3601,77 +3568,12 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // rewrote `weight` on every profile still pinned, ranking them by
             // their position among the favorites instead of within their own
             // folders.
-            if (!SidebarPlusTreeComponent.isSyntheticGroupId(sourceGroupId)) {
+            if (!isSyntheticGroupId(sourceGroupId)) {
                 await this.persistProfileOrder(sourceGroupId, event.previousContainer.data)
             }
         }
         await this.persistProfileOrder(targetGroup.id, event.container.data)
         this.config.save()
-    }
-
-    /**
-     * Reorders a whole multi-selection within one folder: every selected row
-     * is pulled out and re-inserted as a single contiguous block at the drop
-     * point.
-     *
-     * Placement is driven by `hoveredProfileId` — the row genuinely under the
-     * pointer — and the block goes *below* it, which the user found the natural
-     * reading of dropping onto a row.
-     *
-     * `targetIndex` (CDK's `currentIndex`) is only a fallback for when the
-     * pointer is over no row at all, or over one of the dragged rows
-     * themselves. Deriving the position from it was the first approach and it
-     * was wrong in both directions: the block landed above the targeted row
-     * whichever way the drag came from, because `currentIndex` is expressed
-     * against the array minus the single row CDK tracked, not minus the whole
-     * selection.
-     */
-    private static moveSelectionWithinArray (
-        data: PartialProfile<Profile>[],
-        selectedIds: Set<string>,
-        targetIndex: number,
-        hoveredProfileId: string|null,
-    ): void {
-        const isSelected = (p: PartialProfile<Profile>): boolean => !!p.id && selectedIds.has(p.id)
-        const block = data.filter(isSelected)
-        const rest = data.filter(p => !isSelected(p))
-
-        let insertAt = -1
-        if (hoveredProfileId) {
-            const hoveredIndex = data.findIndex(p => p.id === hoveredProfileId)
-            if (hoveredIndex !== -1) {
-                // The hovered row may itself be part of the block — easy to hit
-                // when dragging upwards, since the selected rows travel under
-                // the cursor. Anchor on the nearest *unselected* row at or
-                // above it instead of giving up: that row is what the block
-                // should land beneath. None above at all means the block
-                // belongs at the very top.
-                let anchorIndex = -1
-                for (let i = hoveredIndex; i >= 0; i--) {
-                    if (!isSelected(data[i])) {
-                        anchorIndex = i
-                        break
-                    }
-                }
-                if (anchorIndex === -1) {
-                    insertAt = 0
-                } else {
-                    insertAt = rest.findIndex(p => p.id === data[anchorIndex].id) + 1
-                }
-            }
-        }
-        if (insertAt === -1) {
-            insertAt = 0
-            for (let i = 0; i < Math.min(targetIndex, data.length); i++) {
-                if (!isSelected(data[i])) {
-                    insertAt++
-                }
-            }
-        }
-        rest.splice(insertAt, 0, ...block)
-        // Spliced in place rather than reassigned: `data` is the very array the
-        // template renders and CDK holds a reference to.
-        data.splice(0, data.length, ...rest)
     }
 
     /**
@@ -3708,36 +3610,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }))
     }
 
-    /**
-     * CDK resolves a drop's target container by walking this array in order
-     * and taking the FIRST connected list whose element contains the drop
-     * point. Every nested `groups-<id>` list is rendered *inside*
-     * `#groups-root` (recursive template), so `#groups-root`'s element
-     * DOM-contains all of them — if it came first (as it used to), it always
-     * won, and a folder drag could never register as entering a nested
-     * folder no matter how precisely the user targeted it (confirmed via
-     * CDP: `containerId` was `groups-root` on every attempt, even aimed
-     * directly at a visible child row). Deepest-nested groups must be
-     * checked first, `groups-root` last, so an ancestor list never
-     * shadows a descendant one it happens to contain.
-     */
+    /** CDK must see the deepest nested lists first; see [[sortGroupIdsByDepthDesc]]. */
     get groupListIds (): string[] {
-        return [...SidebarPlusTreeComponent.sortGroupIdsByDepthDesc(this.profileGroups), 'groups-root']
-    }
-
-    private static sortGroupIdsByDepthDesc (groups: PartialProfileGroup<ProfileGroup>[]): string[] {
-        const byId = new Map(groups.map(g => [g.id, g]))
-        const depthCache = new Map<string, number>()
-        const depthOf = (id: string): number => {
-            if (depthCache.has(id)) {
-                return depthCache.get(id)!
-            }
-            const parentId = (byId.get(id) as any)?.parentGroupId
-            const depth = parentId && byId.has(parentId) ? depthOf(parentId) + 1 : 0
-            depthCache.set(id, depth)
-            return depth
-        }
-        return [...groups].sort((a, b) => depthOf(b.id) - depthOf(a.id)).map(g => `groups-${g.id}`)
+        return [...sortGroupIdsByDepthDesc(this.profileGroups), 'groups-root']
     }
 
     async onGroupDrop (
@@ -3772,7 +3647,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
         if (targetParentGroupId) {
             const targetParent = this.profileGroups.find(g => g.id === targetParentGroupId)
-            if (!targetParent?.editable || this.isSelfOrDescendant(targetParentGroupId, dragged.id)) {
+            if (!targetParent?.editable || isSelfOrDescendant(targetParentGroupId, dragged.id, this.rawGroupsSnapshot)) {
                 return
             }
         }
@@ -3785,7 +3660,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // config on 2026-07-29: the same id listed both under `root` and under
         // the folder it had been nested into).
         this.persistGroupOrder(
-            SidebarPlusTreeComponent.parentGroupIdFromGroupContainerId(event.previousContainer.id),
+            parentGroupIdFromGroupContainerId(event.previousContainer.id),
             event.previousContainer.data,
         )
         await this.reparentDraggedGroup(dragged, targetParentGroupId, targetParentGroupId, event.container.data)
@@ -3803,7 +3678,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return null
         }
         const target = this.profileGroups.find(g => g.id === hovered)
-        if (!target?.editable || this.isSelfOrDescendant(hovered, draggedId)) {
+        if (!target?.editable || isSelfOrDescendant(hovered, draggedId, this.rawGroupsSnapshot)) {
             return null
         }
         // Already sitting in that folder: nesting would be a no-op that still
@@ -4118,7 +3993,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             if (favoriteIndex !== -1) {
                 ws.favoriteGroups[favoriteIndex] = newId
             }
-            SidebarPlusTreeComponent.renameOrderKey(ws.groupOrder, oldId, newId)
+            renameOrderKey(ws.groupOrder, oldId, newId)
         }
         this.config.store.sidebarPlus.workspaces = workspaces
 
@@ -4132,7 +4007,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }
 
         this.config.store.sidebarPlus.groupOrder ??= {}
-        SidebarPlusTreeComponent.renameOrderKey(this.config.store.sidebarPlus.groupOrder, oldId, newId)
+        renameOrderKey(this.config.store.sidebarPlus.groupOrder, oldId, newId)
 
         // Snippet attachments, variables and behaviour, keyed by the folder's
         // id. Forgotten here, dragging a folder into another would silently
@@ -4154,42 +4029,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         } catch {
             // Unreadable storage is not worth failing a move over.
         }
-    }
-
-    /** Renames `oldId` to `newId` both as a value wherever it appears in a sibling order list, and as the map's own parent key (siblings ordered *under* that group). */
-    private static renameOrderKey (order: Record<string, string[]>|undefined, oldId: string, newId: string): void {
-        if (!order) {
-            return
-        }
-        for (const key of Object.keys(order)) {
-            const index = order[key].indexOf(oldId)
-            if (index !== -1) {
-                order[key][index] = newId
-            }
-        }
-        if (order[oldId]) {
-            order[newId] = order[oldId]
-            delete order[oldId]
-        }
-    }
-
-    /**
-     * True if `candidateId` is `ancestorId` itself or nested somewhere under
-     * it (used to block re-parenting a group into its own subtree). Walks
-     * `rawGroupsSnapshot` (workspace-*unfiltered*) rather than
-     * `profileGroups` — an ancestor chain that happens to pass through a
-     * group hidden in the active workspace would otherwise break the walk
-     * early and under-detect a genuine self/descendant cycle.
-     */
-    private isSelfOrDescendant (candidateId: string, ancestorId: string): boolean {
-        let current = this.rawGroupsSnapshot.find(g => g.id === candidateId)
-        while (current) {
-            if (current.id === ancestorId) {
-                return true
-            }
-            current = current.parentGroupId ? this.rawGroupsSnapshot.find(g => g.id === current!.parentGroupId) : undefined
-        }
-        return false
     }
 
     ////// GROUP DELETION (context menu) //////
