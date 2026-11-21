@@ -1,7 +1,9 @@
 import './sidebarTree.component.scss'
 // Shown in the footer bar. Imported from package.json (resolveJsonModule) so it
-// tracks the real version at every bump rather than a hand-kept copy.
-import { version as PLUGIN_VERSION } from '../../package.json'
+// tracks the real version at every bump rather than a hand-kept copy. The
+// default import is the JSON module itself; a named `version` import is what
+// webpack 5 warns about (JSON modules only have a default export).
+import packageJson from '../../package.json'
 import FuzzySearch from 'fuzzy-search'
 import { Subscription } from 'rxjs'
 import { CdkDragDrop } from '@angular/cdk/drag-drop'
@@ -55,7 +57,7 @@ const RESIZE_ANIMATION_MS = 125
 })
 export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChecked {
     /** Shown in the footer bar next to the plugin name. */
-    readonly pluginVersion = PLUGIN_VERSION
+    readonly pluginVersion = packageJson.version
     /** Footer links. Constants rather than template literals: the template must not compute (piège #54). */
     readonly repositoryUrl = 'https://github.com/hoyoho/tabby-better-sidebar'
     readonly authorUrl = 'https://github.com/hoyoho'

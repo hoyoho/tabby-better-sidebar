@@ -61,7 +61,18 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.scss$/,
-          use: ['style-loader', 'css-loader', 'sass-loader'],
+          use: [
+            'style-loader',
+            'css-loader',
+            {
+              loader: 'sass-loader',
+              // Dart Sass 1.8x warns on every stylesheet while the loader
+              // defaults to the legacy render() API. The modern API is what
+              // sass-loader 14+ uses by default; opting in here removes 11
+              // identical deprecation warnings from every build.
+              options: { api: 'modern' },
+            },
+          ],
         },
         { test: /\.pug$/, use: ['apply-loader', 'pug-loader'] },
         { test: /\.po$/, use: [{ loader: 'json-loader' }, { loader: 'po-gettext-loader' }] },
