@@ -3,7 +3,7 @@ import './sidebarTree.component.scss'
 // tracks the real version at every bump rather than a hand-kept copy.
 import { version as PLUGIN_VERSION } from '../../package.json'
 import FuzzySearch from 'fuzzy-search'
-import { merge, Subscription, timer } from 'rxjs'
+import { Subscription } from 'rxjs'
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop'
 import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostBinding, HostListener, Inject, Injector, Input, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
@@ -20,7 +20,6 @@ import {
     ProfileGroup,
     ProfileProvider,
     ProfilesService,
-    SplitTabComponent,
     TAB_COLORS,
 } from 'tabby-core'
 import { SettingsTabComponent } from 'tabby-settings'
@@ -32,134 +31,24 @@ import { NoteModalComponent } from './noteModal.component'
 import { PasteGroupModalComponent, PasteResolution } from './pasteGroupModal.component'
 import { TunnelsModalComponent } from './tunnelsModal.component'
 import { IconPickerModalComponent } from './iconPickerModal.component'
-import { ForwardedPortConfig, PortForwardType, SSHTabComponent } from 'tabby-ssh'
-
-/**
- * A live forward as the session holds it. The `ForwardedPort` class is not
- * exported by the vendored typings' index — borrowed through the one member
- * that publicly exposes it, same pattern as `SftpSession` in transfers.ts.
- */
-type LiveForward = NonNullable<SSHTabComponent['sshSession']>['forwardedPorts'][number]
+import { ForwardedPortConfig, SSHTabComponent } from 'tabby-ssh'
 import { SidebarSnippet, SidebarWorkspace } from '../configProvider'
 import { SidebarPlusI18nService } from '../i18n'
 import { SidebarPlusSnippetsService } from '../snippets.service'
 import { SidebarPlusNoticesService } from '../notices.service'
 import { FOCUS_FILTER_HOTKEY } from '../hotkeys'
-import { PingState, SidebarPlusPingService } from '../ping.service'
-import { focusTab, getAllOpenTabs, isLiveSSHTab, isSSHTab } from '../tabs'
+import { focusTab, getAllOpenTabs, isSSHTab } from '../tabs'
 import { hostSupports } from '../hostCompat'
 import { readProfileGroups } from '../profileGroups'
 import { buildPayload, countPayload, describePurge, isEmptyReport, parsePayload, PurgeLevel, PurgeReport, SharedGroup } from '../groupShare'
 import { buildWorkspacePayload, generateWorkspaceId, parseWorkspacePayload, uniqueWorkspaceName } from '../workspaceShare'
-import { formatTunnel, tunnelKey } from '../tunnels'
 import { BetterPanelContribution, electBetterPanelHost, SIDEBAR_PANEL_TOKEN } from '../betterPanel'
 import { openProfileModal, PROFILE_MODAL_UNAVAILABLE } from '../profileModal'
 import { TranslatableMessage } from '../i18nMessage'
 import { clampInViewport } from '../viewport'
 import { SidebarResizeController } from '../sidebarResize'
 import { CollapsableProfileGroup, groupIdFromContainerId, intoCollapsable, isSelfOrDescendant, isSyntheticGroupId, moveSelectionWithinArray, parentGroupIdFromGroupContainerId, renameOrderKey, sortGroupIdsByDepthDesc } from '../sidebarTreeModel'
-import { formatSpeed, SidebarPlusTransfersService } from '../transfersRegistry.service'
-
-/** Duck-typed shape of tabs that carry a launching profile and a live session (e.g. BaseTerminalTabComponent). */
-interface ProfileBackedTab {
-    profile?: { id?: string, name?: string, icon?: string, color?: string, type?: string }
-    session?: unknown
-}
-
-/** One row of the "Tunnels actifs" section — a single live port forward, tied back to the session carrying it. */
-interface ActiveTunnel {
-    tab: SSHTabComponent
-    /** Owning session's display name, so a tunnel can be read without cross-referencing the sessions list. */
-    sessionName: string
-    /** What the row shows: the user's own description when there is one, since that is what they named it for. */
-    label: string
-    /** Technical form (`L 127.0.0.1:8181 → localhost:8181`), revealed on click rather than shown by default. */
-    detail: string
-    /** Browsable address, for a Local forward only — Remote listens on the far end, Dynamic is a SOCKS proxy with no page to open. */
-    url: string|null
-    /**
-     * `live` is a mounted forward. `waiting` is remembered from a session that
-     * just died — the row stays, dimmed, while the session gets a chance to
-     * come back (see TUNNEL_LOSS_GRACE_MS). `lost` is the aftermath of a
-     * reconnection: a forward the revived session did *not* remount, which is
-     * exactly what happens to a tunnel added on the fly — Tabby only remounts
-     * what the profile carries (verified in `ssh.ts:493`, nothing else is
-     * replayed). Shown for a while so the loss is seen instead of silent.
-     */
-    state: 'live'|'waiting'|'lost'
-    /** The row's whole hover text, composed once — the detail, plus what the state means when it is not `live`. */
-    tooltip: string
-    /** `tunnelKey()` of the forward — never displayed, carried so memory can match rows across a reconnection. */
-    key: string
-}
-
-/** What `tunnelMemory` keeps per forward — enough to rebuild a row without the (dead) session. */
-interface RememberedTunnel {
-    key: string
-    sessionName: string
-    label: string
-    detail: string
-}
-
-/** What `tunnelMemory` keeps per SSH tab, across the death and revival of its session. */
-interface TunnelMemoryEntry {
-    rows: RememberedTunnel[]
-    /** When the session was first seen dead, null while it lives. */
-    lostAt: number|null
-    /** Rows for forwards a revived session did not bring back, each with its display deadline. */
-    ghosts: { row: ActiveTunnel, until: number }[]
-}
-
-/**
- * How long a dead session's tunnels stay visible as « en attente de reprise ».
- *
- * Long enough to cover an automatic reconnection and a human clicking
- * "Reconnect" without hurrying; bounded because a session nobody revives is a
- * session that was closed, and its tunnels with it. The SFTP panel's 3 s grace
- * answers a different question (when to *leave* the view) — this one is about
- * how long a line may honestly claim it might come back.
- */
-const TUNNEL_LOSS_GRACE_MS = 60_000
-
-/** How long a « non remonté » row lingers after a reconnection before the loss is considered acknowledged. */
-const TUNNEL_NOT_RESTORED_MS = 30_000
-
-/** One row of the "Sessions actives" section — a live terminal tab, flattened out of its split if it is in one. */
-interface ActiveSession {
-    tab: BaseTabComponent
-    /** The tab's manual rename if it has one, else the launching profile's name, else the tab's own title (quick connect, opened outside any saved profile). */
-    name: string
-    icon: string
-    color: string|null
-    /** The tab's live title (usually `user@host: cwd`), shown as a tooltip since it moves around too much to be the label. */
-    title: string
-    focused: boolean
-    /** Profile type (`ssh`, `local`, `serial`, `telnet`), used to group sessions in the sidebar. */
-    category: string
-    /** True for SSH tabs where latency probing, SFTP and tunnel listing apply. */
-    isSSH: boolean
-    /**
-     * Number of the registry's `active` entries whose `sessionLabel` matches
-     * this session's own `name` — see refreshSessionTransfers(). Zero means
-     * nothing is moving on this session right now.
-     */
-    transferCount: number
-    /** Combined speed of those entries, already formatted (shared formatSpeed()) — blank while count is 0 or no tick has produced a figure yet. */
-    transferSpeedLabel: string
-    /**
-     * The row's whole compact segment ("3 ⇅ 2,4 Mo/s"), precomposed here
-     * rather than concatenated in the template (piège #54) — blank when
-     * transferCount is 0, in which case the row falls back to the uptime.
-     */
-    transferLabel: string
-}
-
-/** One bucket of the "Sessions actives" list when it holds several connection kinds (SSH / local / serial / telnet ...). */
-interface SessionGroup {
-    category: string
-    label: string
-    sessions: ActiveSession[]
-}
+import { ActiveSession, ActiveTunnel, ProfileBackedTab, SessionGroup, SidebarPlusLiveStateService } from '../liveState.service'
 
 @Component({
     selector: 'sidebar-plus-tree',
@@ -283,67 +172,21 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     ////// ACTIVE SESSIONS //////
-    /**
-     * The live SSH sessions listed at the top of the sidebar, rebuilt by the
-     * same pass that refreshes the connection dots. Deliberately *not*
-     * filtered by the active workspace: unlike visibility, favorites and
-     * order, an open session is a fact about the app, not about the workspace
-     * you happen to be looking at — hiding one you have open would be a way to
-     * lose track of it.
-     */
-    activeSessions: ActiveSession[] = []
-    /**
-     * Cached bucketed view of `visibleActiveSessions`, recomputed from
-     * `refreshActiveSessions()` rather than on every change-detection pass.
-     * The outer `*ngFor` reads this through the `sessionGroups` getter; a
-     * getter that rebuilt the array each CD (the pre-fix shape) allocated a
-     * new Map + per-category arrays + SessionGroup objects on every pass and,
-     * combined with the outer loop's lack of `trackBy`, tore down and rebuilt
-     * the whole sessions list on every mousemove during a tab drag.
-     */
-    private _sessionGroups: SessionGroup[] = []
-    /** tab → when it was first seen live, the only record of a session's age there is (see sessionUptime()). */
-    private sessionOpenedAt = new Map<BaseTabComponent, number>()
-    /**
-     * Clock captured once per refresh pass. Template bindings derive uptime
-     * from this instead of calling `Date.now()` themselves: a value read at
-     * binding time can change between Angular's check and its verification
-     * pass and trip NG0100 when the two straddle a second boundary.
-     */
-    private now = Date.now()
-    /** The row under the pointer and the tooltip text held still for it — see sessionTooltip(). */
-    private hoveredSessionTab: BaseTabComponent|null = null
-    private hoveredSessionTooltip = ''
     /** Per-machine UI state (localStorage, like sftpMode) rather than a `sidebarPlus.*` config key — nothing worth syncing across machines, and it sidesteps piège #16 entirely. */
     activeSessionsCollapsed = window.localStorage.sidebarPlusActiveSessionsCollapsed === 'true'
 
-    ////// TRANSFER ACTIVITY ARROWS //////
-    /**
-     * profileId → whether it currently carries an `active` upload/download,
-     * precomputed rather than read from a template getter (piège #54): the
-     * `.transfer-activity` badge is on every profile row, and a getter there
-     * would rescan the whole registry on every change detection pass.
-     *
-     * Rebuilt by refreshTransferActivity(), never mutated in place.
-     */
-    profileActivity = new Map<string, { up: boolean, down: boolean }>()
-    /**
-     * Session display name → the profile that launched it, built by
-     * refreshActiveSessions() from the same live SSH tabs it already walks.
-     *
-     * The registry's entries carry a `sessionLabel` (G5's plain-field
-     * principle: composed by whoever starts the transfer, the only party that
-     * knows) but no profile id — nothing upstream of it needs one. This is the
-     * join back to a profile row, by the one string both sides compute the
-     * same way: `tab.customTitle || tab.topmostParent?.customTitle ||
-     * profile.name || tab.title`, mirrored in sftpPanel.component.ts's own
-     * `sessionLabel` assignment. A tab renamed *after* a transfer started, or
-     * one that closed before this map's next refresh, is the accepted gap —
-     * the alternative was stamping a profile id at every registration site,
-     * several of which live in sftpBrowser.component.ts (off limits here).
-     */
-    private sessionLabelToProfileId = new Map<string, string>()
-    private transfersActivitySubscription: Subscription|null = null
+    /** Live rows and their bucketed view are owned by [[SidebarPlusLiveStateService]]. */
+    get activeSessions (): ActiveSession[] {
+        return this.live.activeSessions
+    }
+
+    get visibleActiveSessions (): ActiveSession[] {
+        return this.live.visibleActiveSessions
+    }
+
+    get sessionGroups (): SessionGroup[] {
+        return this.live.sessionGroups
+    }
 
     ////// RECENT PROFILES //////
     /**
@@ -383,31 +226,16 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     ////// SSH TUNNELS //////
-    /**
-     * Live port forwards, flattened across every open SSH session, and the
-     * per-profile count backing the badge in the tree. Both are rebuilt by the
-     * same pass that refreshes the active sessions — Tabby emits nothing when a
-     * forward is added or removed, so this rides the existing 2s poll rather
-     * than introducing a second one.
-     */
-    activeTunnels: ActiveTunnel[] = []
-    tunnelCounts = new Map<string, number>()
-    /**
-     * profileId → signatures of the forwards actually mounted on its live
-     * session. Lets the config popup tell a tunnel Tabby is really running from
-     * one merely written down — only the former resists deletion.
-     */
-    private liveTunnelKeys = new Map<string, Set<string>>()
     activeTunnelsCollapsed = window.localStorage.sidebarPlusActiveTunnelsCollapsed === 'true'
+
+    /** Live forwards are owned by [[SidebarPlusLiveStateService]]; this is the read side. */
+    get activeTunnels (): ActiveTunnel[] {
+        return this.live.activeTunnels
+    }
 
     /** Profile clicked in the tree, previewed in the bottom panel. */
     previewProfile: PartialProfile<Profile>|null = null
-    private statusSubscription: Subscription|null = null
-    private activeTabFocusSub: Subscription|null = null
-    private tabsChangedSubscription: Subscription|null = null
     private configSubscription: Subscription|null = null
-    /** Focus moves *between panes* of the active split emit nothing on AppService — see watchSplitFocus(). */
-    private splitFocusSubscription: Subscription|null = null
 
     contextMenuGroup: PartialProfileGroup<CollapsableProfileGroup>|null = null
     contextMenuProfile: PartialProfile<Profile>|null = null
@@ -532,7 +360,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         private cdr: ChangeDetectorRef,
         private platform: PlatformService,
         private hotkeys: HotkeysService,
-        private ping: SidebarPlusPingService,
         private snippets: SidebarPlusSnippetsService,
         // Not `notifications` for anything the user has to read: Tabby's
         // `notice()` hard-codes a one-second timeout, which is gone before it
@@ -540,9 +367,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         private notices: SidebarPlusNoticesService,
         @Inject(ProfileProvider) private profileProviders: ProfileProvider<Profile>[],
         private injector: Injector,
-        private transfers: SidebarPlusTransfersService,
         private i18n: SidebarPlusI18nService,
         private elementRef: ElementRef<HTMLElement>,
+        private live: SidebarPlusLiveStateService,
     ) { }
 
     /**
@@ -662,18 +489,10 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             // what loadTreeItems() is supposed to build.
             this.reconcileHiddenBlocks()
             void this.loadTreeItems()
-            // showTransfers can have just flipped — refreshTransferActivity()
-            // reads it directly and clears the map rather than waiting for the
-            // next registry event, which may never come if nothing is running.
-            this.refreshTransferActivity()
-            // Same reasoning for the sessions list's own compact segment: the
-            // switch has to fall back to the uptime immediately, not on the
-            // next 2s poll or registry event.
-            this.refreshSessionTransfers()
-            // The sessions/tunnels blocks' visibility can flip here; rebuild
-            // `activeSessions` (and the cached `_sessionGroups`) immediately
-            // rather than waiting for the next poll or tab event.
-            this.refreshActiveSessions()
+            // Block toggles and the SFTP view switch are all read directly by
+            // the live projection; rebuild it now rather than waiting for the
+            // next poll or registry event.
+            this.live.refreshAll()
         })
 
         // hotkey$, not unfilteredHotkey$: the filtered stream stays quiet while
@@ -685,58 +504,11 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             }
         })
 
-        this.refreshActiveSessions()
-        this.watchSplitFocus()
-        // Recomputes on every meaningful registry change (an entry starting or
-        // leaving `active`) rather than polling it — see `changed` on the
-        // registry. `enabled`/`showTransfers` gates both this subscription's
-        // effect and the source itself (piège: "un interrupteur de bloc coupe
-        // la source, pas seulement la vue") — refreshTransferActivity() below
-        // clears the map instead of computing anything while the block is off.
-        this.transfersActivitySubscription = this.transfers.changed.subscribe(() => {
-            this.zone.run(() => {
-                this.refreshTransferActivity()
-                // Same event, same reasoning as the arrows above: a transfer
-                // starting or leaving `active` should show up on the session
-                // row right away rather than waiting for the next 2s poll.
-                this.refreshSessionTransfers()
-            })
+        // Starts the 2s poll and the focus subscriptions that keep the live
+        // sessions/tunnels list and the profile preview in step with the app.
+        this.live.start({
+            onTabStateChanged: () => this.tabStateChanged(),
         })
-        this.statusSubscription = merge(
-            this.app.tabsChanged$,
-            this.app.tabOpened$,
-            this.app.tabClosed$,
-            this.app.tabRemoved$,
-            // Drives the "focused" highlight of the active sessions list. The
-            // periodic timer below would eventually catch up, but a highlight
-            // trailing the user's own tab switch by up to two seconds reads as
-            // a bug.
-            this.app.activeTabChange$,
-            // Nothing emits when a session merely *dies* (server-side drop,
-            // network loss): the tab lives on showing "Reconnecter" while
-            // `sshSession.open` has already flipped. Hence the poll — it is
-            // what keeps a dead session from staying listed as live.
-            timer(2000, 2000),
-        ).subscribe(() => {
-            this.refreshActiveSessions()
-            this.watchSplitFocus()
-        })
-        // A session gaining focus takes the bottom panel back from a profile
-        // preview: the two never show at the same time. `activeTabChange$` is
-        // only part of the story — the active tab's own focus stream is what
-        // tells us the user has (re)engaged with a session, since
-        // `activeTabChange$` stays silent when the already-active tab is
-        // clicked again or its terminal is clicked into.
-        this.app.activeTabChange$.subscribe(() => {
-            this.tabStateChanged()
-            this.resubscribeActiveTabFocus()
-        })
-        // Tab list changes (a session completing or dropping) also re-drive
-        // the bottom panels. Kept apart from the merged `statusSubscription`
-        // above on purpose: that one rides a 2s poll, and a poll must not
-        // dismiss a profile preview every two seconds.
-        this.tabsChangedSubscription = this.app.tabsChanged$.subscribe(() => this.tabStateChanged())
-        this.resubscribeActiveTabFocus()
     }
 
     ngOnDestroy (): void {
@@ -744,13 +516,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         // unmounts it when the plugin is disabled — so clear the app-wide
         // cursor and the drag state here instead of leaving them stuck.
         this.resize.cancel()
-        this.statusSubscription?.unsubscribe()
-        this.activeTabFocusSub?.unsubscribe()
-        this.tabsChangedSubscription?.unsubscribe()
+        this.live.stop()
         this.configSubscription?.unsubscribe()
         this.hotkeySubscription?.unsubscribe()
-        this.splitFocusSubscription?.unsubscribe()
-        this.transfersActivitySubscription?.unsubscribe()
         if (this.selectionNoticeTimer) {
             clearTimeout(this.selectionNoticeTimer)
         }
@@ -1355,89 +1123,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return null
         }
         return this.workspaces.find(w => w.id === this.activeWorkspaceId) ?? null
-    }
-
-    /**
-     * The tabs belonging to the current host workspace. A top-level split
-     * container contributes every pane it holds; a plain top-level tab is a
-     * workspace of its own.
-     */
-    private activeWorkspaceTabs (): Set<BaseTabComponent> {
-        const active = this.app.activeTab
-        if (!active) {
-            return new Set()
-        }
-        const tabs = active instanceof SplitTabComponent ? active.getAllTabs() : [active]
-        return new Set(tabs as BaseTabComponent[])
-    }
-
-    /**
-     * Active sessions restricted to the current host workspace, so switching
-     * to another workspace switches the list. This follows Tabby's own
-     * workspace (the split container / top-level tab), not the plugin's
-     * profile-filter workspace.
-     */
-    get visibleActiveSessions (): ActiveSession[] {
-        const tabs = this.activeWorkspaceTabs()
-        return this.activeSessions.filter(session => tabs.has(session.tab))
-    }
-
-    /**
-     * The active-session rows bucketed by profile type, in the order the user
-     * reads them online (ssh, then local terminals like WSL / Git Bash, then
-     * out-of-band kinds). A single bucket collapses to a plain list in the
-     * template — headers only appear once the list holds several kinds.
-     *
-     * Returns the cached `_sessionGroups` array (same reference across change
-     * detection passes) so the outer `*ngFor` does not rebuild every group's
-     * DOM on every mousemove during a tab drag. Recomputed by
-     * `recomputeSessionGroups()` from `refreshActiveSessions()`.
-     */
-    get sessionGroups (): SessionGroup[] {
-        return this._sessionGroups
-    }
-
-    /**
-     * Rebuilds `_sessionGroups` from the current `visibleActiveSessions`.
-     * Called from `refreshActiveSessions()` whenever the session set or the
-     * active workspace could have changed — not from a template getter, since
-     * that would allocate new arrays/objects on every change-detection pass
-     * and defeat the `trackBy` below.
-     */
-    private recomputeSessionGroups (): void {
-        const order = ['ssh', 'local', 'serial', 'telnet']
-        const buckets = new Map<string, ActiveSession[]>()
-        for (const session of this.visibleActiveSessions) {
-            const category = (order.includes(session.category) ? session.category : 'other')
-            const bucket = buckets.get(category)
-            if (bucket) {
-                bucket.push(session)
-            } else {
-                buckets.set(category, [session])
-            }
-        }
-        const categories = [...buckets.keys()].sort((a, b) => {
-            const ia = order.indexOf(a)
-            const ib = order.indexOf(b)
-            return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib)
-        })
-        this._sessionGroups = categories.map(category => ({
-            category,
-            label: this.sessionCategoryLabel(category),
-            sessions: buckets.get(category)!,
-        }))
-    }
-
-    /**
-     * Human name for a session category — the kind of label that reads on a
-     * column header. Uses the profile provider's *translated* name ("本地终端",
-     * "SSH"…) rather than the raw type id, with the raw id as the fallback when
-     * no provider matches (unknown type). Same provider-driven naming as the
-     * bottom preview panel's protocol row.
-     */
-    private sessionCategoryLabel (category: string): string {
-        const provider = this.profileProviders.find(p => p.id === category)
-        return provider ? this.i18n.t(provider.name) : category
     }
 
     /**
@@ -2210,515 +1895,13 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         return [favoritesGroup, ...groups]
     }
 
-    ////// ACTIVE SESSIONS //////
-    /**
-     * Rebuilds the list of live SSH sessions, one row per *pane* — a split
-     * holding three sessions is three rows, since focusing "the tab" would be
-     * ambiguous otherwise.
-     *
-     * Only SSH tabs are listed, per the roadmap. Widening this to local/serial
-     * tabs later is a matter of relaxing the `instanceof` and reading liveness
-     * off `session` instead of `sshSession`.
-     */
-    private refreshActiveSessions (): void {
-        const wantSessions = this.showActiveSessions
-        const wantTunnels = this.showTunnels
-
-        // Kept outside the early return below: it is a plain per-tab pass, not
-        // the per-split forward scan that return exists to skip, and the
-        // transfer arrows are a property of the profile row itself — they do
-        // not depend on the "Sessions actives"/"Tunnels" blocks being shown.
-        const sessionLabelToProfileId = new Map<string, string>()
-        for (const tab of getAllOpenTabs(this.app)) {
-            if (!isSSHTab(tab) || !isLiveSSHTab(tab)) {
-                continue
-            }
-            const profile = (tab as unknown as ProfileBackedTab).profile
-            if (!profile?.id) {
-                continue
-            }
-            // Same precedence as sftpPanel.component.ts's own `sessionLabel`
-            // assignment — the string a transfer's `TransferEntry.sessionLabel`
-            // was stamped with at registration, so this map is the join back.
-            const renamedTitle = tab.customTitle || tab.topmostParent?.customTitle
-            const sessionName = renamedTitle || profile.name || tab.title || 'Session SSH'
-            sessionLabelToProfileId.set(sessionName, profile.id)
-        }
-        this.sessionLabelToProfileId = sessionLabelToProfileId
-        this.refreshTransferActivity()
-
-        if (!wantSessions && !wantTunnels) {
-            // Neither block is on: this whole scan — every tab of every split,
-            // twice a second — produces nothing anybody can see. Drop what was
-            // already collected so switching a block back on starts from a
-            // clean slate rather than from a stale snapshot.
-            if (this.activeSessions.length) {
-                this.activeSessions = []
-            }
-            if (this.activeTunnels.length) {
-                this.activeTunnels = []
-            }
-            this.tunnelCounts = new Map()
-            this.liveTunnelKeys = new Map()
-            // A stale memory would resurrect "waiting" rows the moment the
-            // block comes back on, for sessions that may be long gone.
-            this.tunnelMemory.clear()
-            this.recomputeSessionGroups()
-            return
-        }
-
-        const focused = this.resolveFocusedTab()
-        const sessions: ActiveSession[] = []
-        const tunnels: ActiveTunnel[] = []
-        const tunnelCounts = new Map<string, number>()
-        const liveTunnelKeys = new Map<string, Set<string>>()
-        const nowMs = Date.now()
-        const openSSHTabs = new Set<SSHTabComponent>()
-        // A multiplexed session is one object shared by several tabs, so its
-        // forwards would otherwise be listed once per tab: same object, same
-        // tunnel, N lines for one listener.
-        const seenForwards = new Set<LiveForward>()
-        // First mounted wins for a local listener — see the dedup note below.
-        const localOwners = new Map<string, string>()
-        for (const tab of getAllOpenTabs(this.app)) {
-            const isSSH = isSSHTab(tab)
-            const profile = (tab as unknown as ProfileBackedTab).profile
-
-            if (isSSH) {
-                // Same narrowing as the SFTP panel, through the same helper: it
-                // only holds while `tabby-ssh` stays out of node_modules
-                // (src/types/tabby-ssh/PROVENANCE.md, piège #34), and isSSHTab()
-                // is where that assumption is checked rather than assumed.
-                openSSHTabs.add(tab as SSHTabComponent)
-                // Both halves of the test matter — see isLiveSSHTab and piège #37.
-                // Shared with the SFTP panel since 2026-08-02: the two had drifted
-                // apart, this list dropping a session the panel went on serving.
-                if (!isLiveSSHTab(tab as SSHTabComponent)) {
-                    // The tab still exists but its transport is gone: this is the
-                    // very window a reconnection happens in. Its tunnels are shown
-                    // from memory, dimmed, rather than silently dropped — a section
-                    // that vanishes during a micro-cut is indistinguishable from
-                    // one that never had tunnels.
-                    if (wantTunnels) {
-                        this.pushWaitingTunnels(tab as SSHTabComponent, tunnels, nowMs)
-                    }
-                    continue
-                }
-            } else {
-                // Non-SSH terminal tabs (local / serial / telnet): include when
-                // the tab carries a profile and its session is alive.  The
-                // `session` property lives on BaseTerminalTabComponent; tabs
-                // that do not extend it simply lack the property and land here
-                // as undefined → skipped.
-                if (!profile || !(tab as unknown as { session?: unknown }).session) {
-                    continue
-                }
-            }
-            // A manually renamed tab wins over the profile name: with several
-            // sessions open on the same machine the profile name repeats on
-            // every row, and the rename is the user's own way of telling them
-            // apart. Same precedence as Tabby's own tab header, which renders
-            // `customTitle || title`.
-            //
-            // The rename modal only ever targets the *top-level* tab (both
-            // entry points — `tabHeader`'s dblclick and the tab context menu —
-            // pass `this.tab`), so for a pane inside a split the custom title
-            // lives on the SplitTabComponent and never on the pane itself:
-            // hence the `topmostParent` fallback. Consequence to keep in mind:
-            // two SSH panes sharing a renamed split show the same label, which
-            // is exactly what their tab header shows.
-            const renamedTitle = tab.customTitle || tab.topmostParent?.customTitle
-            const sessionName = renamedTitle || profile?.name || tab.title || 'Session'
-            // Computed above regardless because the tunnel rows label
-            // themselves with it, but only collected when the sessions block is
-            // on: `sessions` is also what the latency probe is handed below, so
-            // filling it for a hidden block would keep sending real requests to
-            // real servers for a list nobody can see.
-            if (wantSessions) {
-                sessions.push({
-                    tab,
-                    name: sessionName,
-                    icon: profile?.icon || tab.icon || 'fas fa-terminal',
-                    color: profile?.color ?? tab.color ?? null,
-                    title: tab.title,
-                    focused: tab === focused,
-                    category: profile?.type || 'other',
-                    isSSH,
-                    // Filled in by refreshSessionTransfers() below, whichever
-                    // array (this fresh one or the kept-in-place previous one)
-                    // ends up as this.activeSessions — placeholder only.
-                    transferCount: 0,
-                    transferSpeedLabel: '',
-                    transferLabel: '',
-                })
-            }
-
-            // Tunnels are an SSH-only concept — non-SSH tabs carry no
-            // forwardedPorts, and serial / telnet have no SFTP subsystem.
-            if (!isSSH || !wantTunnels) {
-                continue
-            }
-            // Read straight off the live transport. Tabby owns the forwarding
-            // engine entirely — this plugin only mirrors its state, per the
-            // roadmap's "surcouche visuelle" framing.
-            const sshTab = tab as SSHTabComponent
-            const tabRows: ActiveTunnel[] = []
-            for (const forward of sshTab.sshSession.forwardedPorts ?? []) {
-                if (seenForwards.has(forward)) {
-                    continue
-                }
-                seenForwards.add(forward)
-                const key = tunnelKey(forward)
-                // Real duplicate: two *distinct* sessions each mounted the same
-                // forward — several tabs on one profile do exactly that, since
-                // every session start replays the profile's list, and Windows
-                // lets a second listener bind a port Unix would refuse. Only
-                // one of them usefully serves; the first mounted is kept and
-                // the copy is dismounted, with a notice. Remote forwards are
-                // exempt: they listen on *their* server's side, so the same
-                // key on two sessions to two hosts is two different tunnels —
-                // and on the same host the server already refused the second.
-                if (forward.type !== PortForwardType.Remote) {
-                    const owner = localOwners.get(key)
-                    if (owner !== undefined) {
-                        this.dismountDuplicate(sshTab, forward, owner, sessionName)
-                        continue
-                    }
-                    localOwners.set(key, sessionName)
-                }
-                const detail = formatTunnel(forward)
-                tabRows.push({
-                    tab: sshTab,
-                    sessionName,
-                    label: forward.description?.trim() || detail,
-                    detail,
-                    url: SidebarPlusTreeComponent.tunnelUrl(forward),
-                    state: 'live',
-                    tooltip: detail,
-                    key,
-                })
-                if (profile?.id) {
-                    tunnelCounts.set(profile.id, (tunnelCounts.get(profile.id) ?? 0) + 1)
-                    const keys = liveTunnelKeys.get(profile.id) ?? new Set<string>()
-                    keys.add(key)
-                    liveTunnelKeys.set(profile.id, keys)
-                }
-            }
-            tunnels.push(...tabRows)
-            this.rememberTunnels(sshTab, tabRows, tunnels, nowMs)
-        }
-        // Tabs that no longer exist take their memory with them: a closed tab
-        // is a closed session, not a cut waiting to heal.
-        for (const tab of [...this.tunnelMemory.keys()]) {
-            if (!openSSHTabs.has(tab)) {
-                this.tunnelMemory.delete(tab)
-            }
-        }
-        // Same guard as the sessions list above, and for the same reason: this
-        // runs every 2s and *ngFor tracks by object identity, so reassigning
-        // unconditionally would rebuild every row twice a second and drop the
-        // :hover state the open-in-browser button lives in — it would blink out
-        // from under the cursor and swallow the click.
-        if (!SidebarPlusTreeComponent.sameTunnels(this.activeTunnels, tunnels)) {
-            this.activeTunnels = tunnels
-        }
-        this.tunnelCounts = tunnelCounts
-        this.liveTunnelKeys = liveTunnelKeys
-        // Only swap the array in when something actually changed. This runs on
-        // a 2s timer, and `*ngFor` tracks rows by object identity: reassigning
-        // unconditionally would rebuild every row's DOM twice a second, which
-        // drops the `:hover` state the `.actions` overlay depends on — the SFTP
-        // button would blink out from under the cursor and swallow the click.
-        if (!SidebarPlusTreeComponent.sameSessions(this.activeSessions, sessions)) {
-            this.activeSessions = sessions
-        }
-
-        // Uptime is stamped here, on first sighting, and forgotten as soon as
-        // the tab leaves the list — see sessionUptime() for what that implies.
-        // Kept out of the ActiveSession rows for the same reason as the
-        // latency: a value that changes every tick would fail sameSessions().
-        const now = this.now = Date.now()
-        const live = new Set(sessions.map(session => session.tab))
-        for (const tab of this.sessionOpenedAt.keys()) {
-            if (!live.has(tab)) {
-                this.sessionOpenedAt.delete(tab)
-            }
-        }
-        for (const tab of live) {
-            if (!this.sessionOpenedAt.has(tab)) {
-                this.sessionOpenedAt.set(tab, now)
-            }
-        }
-
-        // Rides this same 2s pass rather than bringing its own timer; the
-        // service decides which sessions are actually due a probe, and does
-        // nothing at all while the interval is 0. Deliberately *not* part of
-        // the ActiveSession rows above: a latency that changes every few
-        // seconds would fail `sameSessions()` and rebuild every row's DOM,
-        // dropping the `:hover` the action buttons live in. The template reads
-        // it through pingState()/pingLabel() instead. SSH only — the probe is
-        // an SFTP round trip, which local/serial/telnet tabs have no use for.
-        this.ping.poll(SidebarPlusTreeComponent.sshOnly(sessions))
-
-        // Refreshes the compact transfer segment on whichever array is now
-        // current — see refreshSessionTransfers() for why this mutates the
-        // existing ActiveSession objects rather than relying on the block
-        // above to have swapped in fresh ones.
-        this.refreshSessionTransfers()
-        // Rebuild the cached session-group buckets now that `activeSessions`
-        // (and the active workspace's visible slice of it) may have changed.
-        this.recomputeSessionGroups()
-    }
-
-    /**
-     * Recomputes each active session's transfer aggregate: how many of the
-     * registry's `active` entries carry this session's own name as their
-     * `sessionLabel`, and their combined speed — G5's plain-string join
-     * (`entry.sessionLabel === session.name`), no profile id involved.
-     *
-     * Mutates the existing `ActiveSession` objects **in place** rather than
-     * going through `this.activeSessions = …`: that reassignment is gated by
-     * `sameSessions()` precisely to keep the array's identity stable across
-     * the 2s poll, so that `*ngFor` does not tear down and rebuild every row
-     * — which would drop the `:hover` state `.actions` lives in (see the
-     * comment above `sameSessions()`). A transfer's speed moves on the
-     * registry's own 500 ms tick, far more often than that guard would
-     * tolerate if these fields were part of what it compares; mutating the
-     * fields on the objects that are already there sidesteps the question
-     * entirely, the same way the registry itself mutates `TransferEntry`
-     * fields in place instead of replacing `entries`.
-     *
-     * Called from refreshActiveSessions() (2s cadence — plenty for ambient
-     * reading, deliberately not the registry's own 500 ms tick) and from the
-     * registry's `changed` event, so a transfer starting or ending shows up
-     * without waiting up to 2s. The speed shown here can therefore trail the
-     * transfers panel's own figure by up to 2s — accepted, and worth saying
-     * here rather than leaving it to look like a bug: this is a row glanced
-     * at in passing, not the panel itself.
-     */
-    private refreshSessionTransfers (): void {
-        if (!this.showTransfers) {
-            for (const session of this.activeSessions) {
-                if (session.transferCount !== 0) {
-                    session.transferCount = 0
-                    session.transferSpeedLabel = ''
-                    session.transferLabel = ''
-                }
-            }
-            return
-        }
-        const bySessionName = new Map<string, { count: number, speed: number }>()
-        for (const entry of this.transfers.entries) {
-            if (entry.state !== 'active' || !entry.sessionLabel) {
-                continue
-            }
-            const agg = bySessionName.get(entry.sessionLabel) ?? { count: 0, speed: 0 }
-            agg.count++
-            agg.speed += entry.speed
-            bySessionName.set(entry.sessionLabel, agg)
-        }
-        for (const session of this.activeSessions) {
-            const agg = bySessionName.get(session.name)
-            session.transferCount = agg?.count ?? 0
-            session.transferSpeedLabel = agg ? formatSpeed(agg.speed) : ''
-            session.transferLabel = session.transferCount > 0
-                ? `${session.transferCount} ⇅${session.transferSpeedLabel ? ` ${session.transferSpeedLabel}` : ''}`
-                : ''
-        }
-    }
-
-    /**
-     * The colour of the row's one dot.
-     *
-     * For an SSH session the dot carries the latency when the probe is on;
-     * latency is the only thing worth distinguishing within this section, whose
-     * every row is a live session by construction. Non-SSH sessions have no
-     * SFTP channel to measure, so their dot is the plain "connected" green — a
-     * row only appears here while its session is alive.
-     */
-    sessionDotClass (session: ActiveSession): string {
-        if (!session.isSSH || this.ping.intervalMs <= 0) {
-            return 'status-dot-connected'
-        }
-        const state: PingState = this.ping.state(session.tab as SSHTabComponent)
-        if (state === 'good') {
-            return 'status-dot-connected'
-        }
-        if (state === 'fair') {
-            return 'status-dot-fair'
-        }
-        if (state === 'poor') {
-            return 'status-dot-poor'
-        }
-        // 'unknown' (not measured yet) and 'unavailable' (no SFTP subsystem)
-        // both fall through to the dimmed base style, which is the honest
-        // rendering of "no figure to show".
-        return ''
-    }
-
-    /**
-     * The row's tooltip, carried by the whole row rather than by the dot: a 6px
-     * dot is not something one aims at to read a figure (user request,
-     * 2026-08-03).
-     *
-     * Form settled by the user the same day: `app.exemple.fr | 13 ms | 1m 47s`,
-     * three fields and no prose. The tab's live title (`user@host: cwd`), which
-     * this tooltip used to carry, is dropped with it — the row already shows
-     * the name, and a title that moves with the working directory was the
-     * verbose part. The latency field disappears entirely when there is no
-     * figure, rather than showing a placeholder.
-     */
-    sessionTooltip (session: ActiveSession): string {
-        // Frozen for as long as the pointer stays on the row. A native tooltip
-        // is torn down and rebuilt whenever its `title` attribute is rewritten,
-        // and this one would be rewritten on every 2s pass as the seconds move
-        // — which read as a flicker while trying to read it. Off the row the
-        // value keeps updating: nothing is on screen to flicker.
-        if (this.hoveredSessionTab === session.tab) {
-            return this.hoveredSessionTooltip
-        }
-        return this.buildSessionTooltip(session)
-    }
-
-    /**
-     * Takes the snapshot the tooltip will show, and drops it on the way out.
-     *
-     * Consequence to accept: hover a row for two minutes and the figures are
-     * those of the moment the pointer arrived. Leaving and coming back is what
-     * refreshes them — and that is the gesture anyone makes to re-read a
-     * tooltip anyway.
-     */
-    onSessionHover (session: ActiveSession, hovering: boolean): void {
-        if (hovering) {
-            this.hoveredSessionTab = session.tab
-            this.hoveredSessionTooltip = this.buildSessionTooltip(session)
-        } else if (this.hoveredSessionTab === session.tab) {
-            this.hoveredSessionTab = null
-        }
-    }
-
-    private buildSessionTooltip (session: ActiveSession): string {
-        const latency = session.isSSH ? this.ping.latencyMs(session.tab as SSHTabComponent) : null
-        const line = [
-            session.name,
-            latency === null ? null : `${latency} ms`,
-            this.formatUptimePrecise(this.uptimeMs(session)),
-        ].filter(Boolean).join(' | ')
-        // A second line, only when there is something to say — the native
-        // `title` attribute renders `\n` as an actual line break (same as
-        // TransferEntry.tooltip in transfersRegistry.service.ts), so this
-        // does not have to fight the ' | '-joined line above for room.
-        if (session.transferCount <= 0) {
-            return line
-        }
-        const transfersLine = session.transferSpeedLabel
-            ? this.i18n.t('Transfers: {count} running, total speed {speed}', { count: session.transferCount, speed: session.transferSpeedLabel })
-            : this.i18n.t('Transfers: {count} running', { count: session.transferCount })
-        return `${line}\n${transfersLine}`
-    }
-
-    /**
-     * How long the session has been up, stamped by this component the first
-     * time the tab shows up in the list.
-     *
-     * Nothing in Tabby or `tabby-ssh` records when a session opened — checked
-     * on the installed source — so it has to be observed. Two consequences,
-     * both benign: a session that was already open when this component mounted
-     * is dated from the mount (only reachable by disabling and re-enabling the
-     * plugin, the sidebar being mounted at startup), and a session that drops
-     * and reconnects restarts from zero, since it leaves the list in between.
-     * The second one is arguably the right answer anyway.
-     */
-    sessionUptime (session: ActiveSession): string {
-        const elapsed = this.uptimeMs(session)
-        return elapsed === null ? '' : this.formatUptime(elapsed)
-    }
-
-    /** Milliseconds since the tab was first seen live, or null while it has not been stamped yet. */
-    private uptimeMs (session: ActiveSession): number|null {
-        const startedAt = this.sessionOpenedAt.get(session.tab)
-        return startedAt === undefined ? null : this.now - startedAt
-    }
-
-    /**
-     * `1m 47s`, `3h 05m`, `2j 04h` — the tooltip's own form, precise to the
-     * second under a minute.
-     *
-     * Deliberately not the same rendering as the row's: this one is only read
-     * while hovering, whereas the row is permanently in view, and seconds
-     * ticking on every open session would keep the sidebar moving in the
-     * corner of the eye for no gain.
-     */
-    private formatUptimePrecise (ms: number|null): string {
-        if (ms === null) {
-            return ''
-        }
-        const seconds = Math.max(0, Math.floor(ms / 1000))
-        if (seconds < 60) {
-            return `${seconds}s`
-        }
-        const minutes = Math.floor(seconds / 60)
-        if (minutes < 60) {
-            return `${minutes}m ${String(seconds % 60).padStart(2, '0')}s`
-        }
-        const hours = Math.floor(minutes / 60)
-        if (hours < 24) {
-            return `${hours}h ${String(minutes % 60).padStart(2, '0')}m`
-        }
-        // Only the day unit varies with the language ("2j" in French, "2d" in
-        // English) — the s/m/h forms above are cross-language.
-        return this.i18n.t('{d}d {h}h', { d: Math.floor(hours / 24), h: String(hours % 24).padStart(2, '0') })
-    }
-
-    /** `42 s`, `12 min`, `3 h 05`, `2 j 4 h` — coarser as it gets longer, since a session's age is read at a glance. */
-    private formatUptime (ms: number): string {
-        const seconds = Math.max(0, Math.floor(ms / 1000))
-        if (seconds < 60) {
-            return `${seconds} s`
-        }
-        const minutes = Math.floor(seconds / 60)
-        if (minutes < 60) {
-            return `${minutes} min`
-        }
-        const hours = Math.floor(minutes / 60)
-        if (hours < 24) {
-            return `${hours} h ${String(minutes % 60).padStart(2, '0')}`
-        }
-        // Same reasoning as formatUptimePrecise(): only the day unit is
-        // language-bound.
-        return this.i18n.t('{d} d {h} h', { d: Math.floor(hours / 24), h: hours % 24 })
-    }
-
-    private static sameSessions (a: ActiveSession[], b: ActiveSession[]): boolean {
-        return a.length === b.length && a.every((session, i) =>
-            session.tab === b[i].tab &&
-            session.focused === b[i].focused &&
-            session.name === b[i].name &&
-            session.icon === b[i].icon &&
-            session.color === b[i].color &&
-            session.title === b[i].title &&
-            session.category === b[i].category &&
-            session.isSSH === b[i].isSSH)
-    }
-
-    /** The SSH subset of a sessions list, for the latency probe — local/serial/telnet tabs have no SFTP channel to measure on. */
-    private static sshOnly (sessions: ActiveSession[]): SSHTabComponent[] {
-        return sessions.filter(s => s.isSSH).map(s => s.tab as SSHTabComponent)
-    }
-
-    /** The pane the user is actually looking at: `app.activeTab` is the split, not the session inside it. */
-    private resolveFocusedTab (): BaseTabComponent|null {
-        const active = this.app.activeTab
-        return active instanceof SplitTabComponent ? active.getFocusedTab() : active
-    }
-
     /**
      * Connection details of the focused SSH session, for the bottom panel:
      * profile name plus user@host:port and a live/disconnected state. Null when
      * the focused tab is not an SSH session.
      */
     get connectionInfo (): { name: string, host: string, user: string, port: string, protocol: string, connected: boolean }|null {
-        const tab = this.resolveFocusedTab()
+        const tab = this.live.focusedTab()
         if (!tab || !isSSHTab(tab)) {
             return null
         }
@@ -2761,45 +1944,41 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         }
     }
 
-    /**
-     * Keeps the focused-row highlight in step with focus moves *inside* the
-     * active split, which AppService knows nothing about. Re-subscribed on
-     * every refresh: dropping the old subscription unconditionally is what
-     * makes switching from one split to another actually follow the new one.
-     */
-    private watchSplitFocus (): void {
-        this.splitFocusSubscription?.unsubscribe()
-        this.splitFocusSubscription = null
-        const active = this.app.activeTab
-        if (active instanceof SplitTabComponent) {
-            this.splitFocusSubscription = active.focusChanged$.subscribe(() => this.refreshActiveSessions())
-        }
+    ////// LIVE STATE DELEGATES //////
+    sessionDotClass (session: ActiveSession): string {
+        return this.live.sessionDotClass(session)
     }
 
-    /**
-     * Re-subscribes to the currently active tab's focus streams. Whenever the
-     * active session receives focus — whether by top-level tab click,
-     * click-into-terminal, or re-selecting the same tab — the profile preview
-     * is dismissed so the connection panel can take its place, the same rule
-     * Tabby's own sidebar follows.
-     *
-     * For a split the split's own `focused$` only fires on tab-level focus;
-     * inner-session clicks surface through `focusChanged$`, so both are merged.
-     */
-    private resubscribeActiveTabFocus (): void {
-        this.activeTabFocusSub?.unsubscribe()
-        this.activeTabFocusSub = null
-        const tab = this.app.activeTab
-        if (!tab) {
-            return
-        }
-        if (tab instanceof SplitTabComponent) {
-            this.activeTabFocusSub = merge(tab.focused$, tab.focusChanged$)
-                .subscribe(() => this.tabStateChanged())
-        } else {
-            this.activeTabFocusSub = tab.focused$
-                .subscribe(() => this.tabStateChanged())
-        }
+    sessionTooltip (session: ActiveSession): string {
+        return this.live.sessionTooltip(session)
+    }
+
+    onSessionHover (session: ActiveSession, hovering: boolean): void {
+        this.live.onSessionHover(session, hovering)
+    }
+
+    sessionUptime (session: ActiveSession): string {
+        return this.live.sessionUptime(session)
+    }
+
+    /** Whether this configured tunnel is one Tabby currently has mounted — the only kind whose deletion is withheld. */
+    isTunnelLive (forward: ForwardedPortConfig, profileId: string|undefined): boolean {
+        return this.live.isTunnelLive(forward, profileId)
+    }
+
+    /** Backs the chain badge in the tree — number of live forwards across every open session of this profile. */
+    tunnelCount (profile: PartialProfile<Profile>): number {
+        return this.live.tunnelCount(profile)
+    }
+
+    /** Tunnels written on the profile, mounted or not. Drives a dimmed badge so a profile carrying forwards is recognisable before it is launched. */
+    configuredTunnelCount (profile: PartialProfile<Profile>): number {
+        return this.live.configuredTunnelCount(profile)
+    }
+
+    /** Backs the ↑/↓ badge in the tree — read from the precomputed map, never scanning the registry here. */
+    transferActivity (profile: PartialProfile<Profile>): { up: boolean, down: boolean }|null {
+        return this.live.transferActivity(profile)
     }
 
     /**
@@ -2812,149 +1991,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private tabStateChanged (): void {
         this.previewProfile = null
         this.cdr.markForCheck()
-    }
-
-    ////// SSH TUNNELS //////
-    /** Whether this configured tunnel is one Tabby currently has mounted — the only kind whose deletion is withheld. */
-    isTunnelLive (forward: ForwardedPortConfig, profileId: string|undefined): boolean {
-        if (!profileId) {
-            return false
-        }
-        return this.liveTunnelKeys.get(profileId)?.has(tunnelKey(forward)) ?? false
-    }
-
-    private static sameTunnels (a: ActiveTunnel[], b: ActiveTunnel[]): boolean {
-        return a.length === b.length && a.every((tunnel, i) =>
-            tunnel.tab === b[i].tab &&
-            tunnel.label === b[i].label &&
-            tunnel.detail === b[i].detail &&
-            tunnel.url === b[i].url &&
-            tunnel.sessionName === b[i].sessionName &&
-            tunnel.state === b[i].state)
-    }
-
-    /**
-     * What each SSH tab's tunnels looked like when last seen alive, kept across
-     * the death of the session so a micro-cut shows as a state instead of a
-     * disappearance. Pruned when the tab itself goes away.
-     */
-    private tunnelMemory = new Map<SSHTabComponent, TunnelMemoryEntry>()
-
-    /** Forwards already dismounted as duplicates — the poll must not notice (or dismount) them twice while the removal is in flight. */
-    private dismountedForwards = new WeakSet<LiveForward>()
-
-    /** Emits the remembered tunnels of a dead-but-present tab, dimmed, while the reconnection window lasts. */
-    private pushWaitingTunnels (tab: SSHTabComponent, into: ActiveTunnel[], now: number): void {
-        const entry = this.tunnelMemory.get(tab)
-        if (!entry?.rows.length) {
-            return
-        }
-        entry.lostAt ??= now
-        if (now - entry.lostAt > TUNNEL_LOSS_GRACE_MS) {
-            // Nobody revived it in time: from here on the cut is treated as a
-            // closure, and the rows go the way they always did before this
-            // feature — away.
-            this.tunnelMemory.delete(tab)
-            return
-        }
-        for (const row of entry.rows) {
-            into.push({
-                tab,
-                sessionName: row.sessionName,
-                label: row.label,
-                detail: row.detail,
-                // No browser button on a dead listener: the page could not load.
-                url: null,
-                state: 'waiting',
-                tooltip: this.i18n.t('{detail}: session cut, tunnel waiting to resume', { detail: row.detail }),
-                key: row.key,
-            })
-        }
-    }
-
-    /**
-     * Updates the memory of a live tab, and surfaces what a revival did *not*
-     * bring back.
-     *
-     * Tabby only remounts the forwards written on the profile — a tunnel added
-     * on the fly through the modal is silently gone after a reconnection
-     * (verified in the installed app's `ssh.ts`: `start()` replays
-     * `profile.options.forwardedPorts`, nothing else). Those are shown as
-     * `lost` for a while, so the silence has a witness.
-     */
-    private rememberTunnels (tab: SSHTabComponent, live: ActiveTunnel[], into: ActiveTunnel[], now: number): void {
-        const previous = this.tunnelMemory.get(tab)
-        let ghosts = previous?.ghosts ?? []
-        if (previous && previous.lostAt !== null) {
-            const liveKeys = new Set(live.map(row => row.key))
-            ghosts = previous.rows.filter(row => !liveKeys.has(row.key)).map(row => ({
-                row: {
-                    tab,
-                    sessionName: row.sessionName,
-                    label: row.label,
-                    detail: row.detail,
-                    url: null,
-                    state: 'lost' as const,
-                    tooltip: this.i18n.t(
-                        '{detail}: not restored after the reconnection. Only the tunnels saved in the profile are remounted; a tunnel added on the fly disappears with its session.',
-                        { detail: row.detail },
-                    ),
-                    key: row.key,
-                },
-                until: now + TUNNEL_NOT_RESTORED_MS,
-            }))
-        }
-        // The same row objects are re-pushed every pass on purpose: their
-        // fields are what sameTunnels() compares, and stable rows are what
-        // keeps the DOM from being rebuilt twice a second.
-        ghosts = ghosts.filter(ghost => ghost.until > now)
-        into.push(...ghosts.map(ghost => ghost.row))
-        this.tunnelMemory.set(tab, {
-            rows: live.map(row => ({ key: row.key, sessionName: row.sessionName, label: row.label, detail: row.detail })),
-            lostAt: null,
-            ghosts,
-        })
-    }
-
-    /**
-     * Dismounts one duplicate forward and says so.
-     *
-     * Fire-and-forget on purpose: this runs inside the 2 s poll, and the poll
-     * must not await network round trips. The WeakSet is what keeps the next
-     * pass from dismounting (or announcing) the same object again while the
-     * removal is still in flight.
-     */
-    private dismountDuplicate (tab: SSHTabComponent, forward: LiveForward, ownerName: string, sessionName: string): void {
-        if (this.dismountedForwards.has(forward)) {
-            return
-        }
-        this.dismountedForwards.add(forward)
-        const detail = formatTunnel(forward)
-        tab.sshSession?.removePortForward(forward).catch(() => {
-            // The listener may already be gone with its session; either way the
-            // next poll re-reads reality rather than trusting this call.
-        })
-        this.notices.notice(
-            this.i18n.t('Tunnel {detail} already mounted by {owner}: duplicate dismounted ({session})', { detail, owner: ownerName, session: sessionName }),
-        )
-    }
-
-    /**
-     * The address a Local forward can be opened at, or null.
-     *
-     * Only Local is browsable: Remote listens on the far end of the connection,
-     * and Dynamic is a SOCKS proxy with no page behind it. `0.0.0.0` means
-     * "every interface", which is not an address a browser can be pointed at —
-     * loopback is the one that reaches it. https is inferred from the usual
-     * ports only; guessing further would produce links that fail to load.
-     */
-    private static tunnelUrl (forward: ForwardedPortConfig): string|null {
-        if (forward.type !== PortForwardType.Local) {
-            return null
-        }
-        const host = !forward.host || forward.host === '0.0.0.0' ? '127.0.0.1' : forward.host
-        const scheme = forward.port === 443 || forward.targetPort === 443 ? 'https' : 'http'
-        return `${scheme}://${host}:${forward.port}`
     }
 
     openTunnelUrl (tunnel: ActiveTunnel, event: MouseEvent): void {
@@ -2971,70 +2007,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     toggleTunnelDetails (index: number, event: MouseEvent): void {
         event.preventDefault()
         this.expandedTunnelIndex = this.expandedTunnelIndex === index ? null : index
-    }
-
-    /** Backs the chain badge in the tree — number of live forwards across every open session of this profile. */
-    tunnelCount (profile: PartialProfile<Profile>): number {
-        return (profile.id && this.tunnelCounts.get(profile.id)) || 0
-    }
-
-    /**
-     * Tunnels written on the profile, mounted or not. Drives a dimmed badge so
-     * a profile carrying forwards is recognisable before it is launched —
-     * otherwise they only ever appear once connected, which is precisely when
-     * a surprise is least welcome.
-     */
-    configuredTunnelCount (profile: PartialProfile<Profile>): number {
-        return (profile.options as { forwardedPorts?: ForwardedPortConfig[] }|undefined)?.forwardedPorts?.length ?? 0
-    }
-
-    ////// TRANSFER ACTIVITY ARROWS //////
-    /** Backs the ↑/↓ badge in the tree — read from the precomputed map, never scanning the registry here (piège #54). */
-    transferActivity (profile: PartialProfile<Profile>): { up: boolean, down: boolean }|null {
-        return (profile.id && this.profileActivity.get(profile.id)) || null
-    }
-
-    /**
-     * Recomputes profileId → {up, down} from the registry's entries and the
-     * sessionLabel → profileId map refreshActiveSessions() just rebuilt.
-     *
-     * Called on every `changed` event from the registry (an entry starting or
-     * leaving `active`) and every `refreshActiveSessions()` pass (a session's
-     * label may now resolve, or no longer). Not a getter: the row for every
-     * profile in the tree would otherwise rescan the whole registry on every
-     * change detection pass.
-     */
-    private refreshTransferActivity (): void {
-        // `showTransfers` is this component's own mirror of the registry's
-        // `enabled` (it additionally gates on `hostSupports`) — the switch
-        // that is supposed to cut the source, not just the view. The registry
-        // itself already declines to track *new* entries while off; this is
-        // what keeps an arrow from lingering, drawn from an entry that was
-        // already active when the switch flipped.
-        if (!this.showTransfers) {
-            if (this.profileActivity.size) {
-                this.profileActivity = new Map()
-            }
-            return
-        }
-        const activity = new Map<string, { up: boolean, down: boolean }>()
-        for (const entry of this.transfers.entries) {
-            if (entry.state !== 'active' || !entry.sessionLabel) {
-                continue
-            }
-            const profileId = this.sessionLabelToProfileId.get(entry.sessionLabel)
-            if (!profileId) {
-                continue
-            }
-            const row = activity.get(profileId) ?? { up: false, down: false }
-            if (entry.direction === 'up') {
-                row.up = true
-            } else {
-                row.down = true
-            }
-            activity.set(profileId, row)
-        }
-        this.profileActivity = activity
     }
 
     toggleActiveTunnels (): void {
