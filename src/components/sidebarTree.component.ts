@@ -1622,17 +1622,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         return this.resize.grabberTransform
     }
 
-    /**
-     * Mirrors the drag state onto the host element so the SCSS can disable the
-     * width transition while dragging (and re-enable it for the single
-     * animated commit on release). Separate from `.grabber`'s own
-     * [class.resizing] binding, which styles the handle itself.
-     */
-    @HostBinding('class.resizing')
-    get hostResizing (): boolean {
-        return this.panelIsResizing
-    }
-
     // Called from onDocumentMouseMove() — see the note there for why this is
     // not itself a @HostListener. The tracking state lives in the drag
     // controller.

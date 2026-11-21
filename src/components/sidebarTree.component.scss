@@ -11,12 +11,6 @@
 // top of the footer, the same rule the layout enforces for the content region.
 $sidebar-footer-height: 26px;
 
-// How long a released resize animates for. The grabber's transform and the
-// host's width MUST share this value: they run in opposite directions at the
-// same moment, and only cancel out — leaving the handle where the pointer let
-// go of it — while the two durations match.
-$sidebar-resize-duration: 120ms;
-
 // Resize handle geometry. `right` is derived from the width so the handle stays
 // centred on the host's edge, and the two z-indexes bracket app content while
 // staying under the z-index 100 floating popups.
@@ -778,10 +772,11 @@ sidebar-plus-tree .grabber {
     right: -0.5 * $sidebar-grabber-width;
     cursor: col-resize;
     background-color: transparent;
-    // transform is the drag preview (see grabberTransform): animated over the
-    // same duration as the host's width transition so the release lands
-    // smoothly.
-    transition: background-color 100ms ease, transform $sidebar-resize-duration ease;
+    // No transform transition: on release the width and the transform are
+    // committed together in one relayout (like the pane splitter), so the
+    // handle lands exactly where the pointer left it. Animating them lets the
+    // terminal reflow lag the compositor and makes the handle spring back.
+    transition: background-color 100ms ease;
 
     &:hover {
         background-color: var(--theme-primary);
@@ -798,11 +793,11 @@ sidebar-plus-tree .grabber {
     }
 }
 
-// Width only animates outside a drag; see $sidebar-resize-duration for why the
-// two durations must match.
-sidebar-plus-tree:not(.resizing) {
-    transition: width $sidebar-resize-duration ease;
-}
+// Width follows the committed value immediately (the host binding in the
+// component sets it); there is deliberately no width transition. A width
+// transition would reflow the terminal while the grabber's compositor
+// transition runs, and the two can desync into the visible rebound this
+// gesture used to have.
 
 .group-context-menu,
 .group-context-submenu,
