@@ -1390,7 +1390,10 @@ sidebar-plus-tree .sidebar-plus-footer {
 
         .footer-name { font-weight: 600; }
         .footer-by { opacity: 0.85; }
-        .footer-by-author { opacity: 0.85; }
+        // Pug drops the newline whitespace between two inline tags, so the
+        // author link would otherwise render as "byHoyoho". Match the version
+        // suffix's spacing instead of relying on template whitespace.
+        .footer-by-author { margin-left: 4px; opacity: 0.85; }
         .footer-version { margin-left: 4px; opacity: 0.85; }
     }
 
