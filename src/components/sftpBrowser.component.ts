@@ -1,7 +1,6 @@
 import './sftpBrowser.component.scss'
 import * as fs from 'fs'
 import { basename, posix } from 'path'
-import { filesize } from 'filesize'
 import { AfterViewChecked, Component, ElementRef, EventEmitter, HostListener, Inject, NgZone, OnDestroy, Output, ViewChild } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import { ConfigService, HTMLFileUpload, LocaleService, NotificationsService, PlatformService, PromptModalComponent, TranslateService } from 'tabby-core'
@@ -21,6 +20,7 @@ import { SidebarPlusTempFilesService } from '../tempFiles.service'
 import { SftpTransfers } from '../transfers'
 import { SidebarPlusTransfersService } from '../transfersRegistry.service'
 import { clampInViewport } from '../viewport'
+import { extension as formatExtension, fullDate as formatFullDate, humanSize as formatSize, isHidden as formatIsHidden, longMode as formatLongMode, octalMode as formatOctalMode, sameEntry as sameSftpEntry, shortDate as formatShortDate } from '../sftpFormat'
 import { ConfirmModalComponent } from './confirmModal.component'
 
 /**
@@ -546,7 +546,7 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         let changed = current.length !== entries.length
         const merged = entries.map(entry => {
             const existing = byPath.get(entry.fullPath)
-            if (existing && this.sameEntry(existing, entry)) {
+            if (existing && sameSftpEntry(existing, entry)) {
                 return existing
             }
             changed = true
@@ -559,14 +559,6 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         // The native filter pass, reached through its public trigger rather
         // than through `updateFilteredList()`, which is private.
         this.onFilterChange()
-    }
-
-    private sameEntry (a: SFTPFile, b: SFTPFile): boolean {
-        return a.size === b.size
-            && a.modified.getTime() === b.modified.getTime()
-            && a.mode === b.mode
-            && a.isDirectory === b.isDirectory
-            && a.isSymlink === b.isSymlink
     }
 
     ////// CONTEXT MENUS //////
@@ -1285,7 +1277,7 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
         return await this.ask(
             this.i18n.t(
                 '"{name}" contains more than {count} files ({size} at least). Everything will be downloaded before drag-and-drop becomes possible, with no progress and no way to cancel. Continue?',
-                { name: item.name, count: weight.files, size: filesize(weight.bytes) },
+                { name: item.name, count: weight.files, size: formatSize(weight.bytes) },
             ),
             this.i18n.t('Download'),
         )
@@ -2539,46 +2531,25 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
      * in an otherwise French panel — and, worse, silently swap day and month.
      */
     shortDate (value: Date): string {
-        const d = value instanceof Date ? value : new Date(value)
-        return isNaN(d.getTime()) ? '' : d.toLocaleDateString(this.locale.getLocale())
+        return formatShortDate(value, this.locale.getLocale())
     }
 
     fullDate (value: Date): string {
-        const d = value instanceof Date ? value : new Date(value)
-        return isNaN(d.getTime()) ? '' : d.toLocaleString(this.locale.getLocale())
+        return formatFullDate(value, this.locale.getLocale())
     }
 
-    /** Permissions as the octal triplet (`755`, `644`), the form actually used when typing a chmod. */
+    /** Permissions as the octal triplet — see [[formatOctalMode]]. */
     octalMode (item: SFTPFile): string {
-        // eslint-disable-next-line no-bitwise
-        return (item.mode & 0o777).toString(8).padStart(3, '0')
+        return formatOctalMode(item)
     }
 
-    /**
-     * The `drwxrwxr-x` form, computed here rather than through the inherited
-     * `getModeString()`.
-     *
-     * That one masks `item.mode` against Node's `constants.S_IXUSR`,
-     * `S_IRGRP`, `S_IWOTH` and friends — and **Windows only defines
-     * `S_IRUSR`, `S_IWUSR` and `S_IFDIR`**. The rest come back `undefined`,
-     * `mode & undefined` is 0, and every one of those bits renders as a dash:
-     * a 775 directory displays as `drw-------` on Windows, regardless of its
-     * real permissions. Verified against this very panel on 2026-07-29.
-     */
+    /** The `drwxrwxr-x` form — see [[formatLongMode]] for why it is not the inherited one. */
     longMode (item: SFTPFile): string {
-        const type = item.isDirectory ? 'd' : item.isSymlink ? 'l' : '-'
-        const flags = 'rwxrwxrwx'
-        let out = type
-        for (let i = 0; i < flags.length; i++) {
-            // Bit 8 is the owner's read flag (0o400) down to bit 0, other's execute.
-            // eslint-disable-next-line no-bitwise
-            out += item.mode & 1 << flags.length - 1 - i ? flags[i] : '-'
-        }
-        return out
+        return formatLongMode(item)
     }
 
     humanSize (bytes: number): string {
-        return filesize(bytes, { round: 1 }) as string
+        return formatSize(bytes)
     }
 
     typeLabel (item: SFTPFile): string {
@@ -2593,22 +2564,12 @@ export class SidebarPlusSftpBrowserComponent extends SFTPPanelComponent implemen
     }
 
     extension (item: SFTPFile): string {
-        if (item.isDirectory) {
-            return ''
-        }
-        // A leading dot is the name of a hidden file, not an extension:
-        // `.bashrc` has none.
-        const at = item.name.lastIndexOf('.')
-        return at > 0 ? item.name.slice(at + 1) : ''
+        return formatExtension(item)
     }
 
-    /**
-     * Dotfiles. Dimmed when shown, and shown by default: the `sftpShowHidden`
-     * toggle in the header menu is what decides, `displayedFiles` filtering them
-     * out when it is off.
-     */
+    /** Dotfiles. Dimmed when shown, and shown by default — see [[formatIsHidden]]. */
     isHidden (item: SFTPFile): boolean {
-        return item.name.startsWith('.')
+        return formatIsHidden(item)
     }
 
     /**
