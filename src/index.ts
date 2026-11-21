@@ -7,6 +7,8 @@ import { SettingsTabProvider } from 'tabby-settings'
 
 import { SidebarPlusContribution } from './sidebarContribution'
 import { SidebarPlusTreeComponent } from './components/sidebarTree.component'
+import { SidebarPlusActiveSessionsComponent } from './components/activeSessions.component'
+import { SidebarPlusActiveTunnelsComponent } from './components/activeTunnels.component'
 import { SidebarPlusSftpComponent } from './components/sftpPanel.component'
 import { SidebarPlusSftpBrowserComponent } from './components/sftpBrowser.component'
 import { SidebarPlusSftpLocalComponent } from './components/sftpLocal.component'
@@ -55,6 +57,8 @@ const SIDEBAR_PANEL_CONTRIBUTION: BetterPanelContribution = {
     ],
     declarations: [
         SidebarPlusTreeComponent,
+        SidebarPlusActiveSessionsComponent,
+        SidebarPlusActiveTunnelsComponent,
         SidebarPlusSftpComponent,
         SidebarPlusSftpBrowserComponent,
         SidebarPlusSftpLocalComponent,

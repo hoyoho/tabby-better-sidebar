@@ -9,7 +9,6 @@ import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, HostBinding
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
 import {
     AppService,
-    BaseTabComponent,
     ConfigService,
     HotkeysService,
     NotificationsService,
@@ -48,7 +47,7 @@ import { TranslatableMessage } from '../i18nMessage'
 import { clampInViewport } from '../viewport'
 import { SidebarResizeController } from '../sidebarResize'
 import { CollapsableProfileGroup, groupIdFromContainerId, intoCollapsable, isSelfOrDescendant, isSyntheticGroupId, moveSelectionWithinArray, parentGroupIdFromGroupContainerId, renameOrderKey, sortGroupIdsByDepthDesc } from '../sidebarTreeModel'
-import { ActiveSession, ActiveTunnel, ProfileBackedTab, SessionGroup, SidebarPlusLiveStateService } from '../liveState.service'
+import { ActiveSession, ProfileBackedTab, SidebarPlusLiveStateService } from '../liveState.service'
 import { SidebarPlusWorkspaceStore } from '../workspaceStore.service'
 
 @Component({
@@ -184,23 +183,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         return this.resize.width
     }
 
-    ////// ACTIVE SESSIONS //////
-    /** Per-machine UI state (localStorage, like sftpMode) rather than a `sidebarPlus.*` config key — nothing worth syncing across machines, and it sidesteps piège #16 entirely. */
-    activeSessionsCollapsed = window.localStorage.sidebarPlusActiveSessionsCollapsed === 'true'
-
-    /** Live rows and their bucketed view are owned by [[SidebarPlusLiveStateService]]. */
-    get activeSessions (): ActiveSession[] {
-        return this.live.activeSessions
-    }
-
-    get visibleActiveSessions (): ActiveSession[] {
-        return this.live.visibleActiveSessions
-    }
-
-    get sessionGroups (): SessionGroup[] {
-        return this.live.sessionGroups
-    }
-
     ////// RECENT PROFILES //////
     /**
      * Ids of the last profiles launched through launchProfile() — the single
@@ -239,12 +221,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     ////// SSH TUNNELS //////
-    activeTunnelsCollapsed = window.localStorage.sidebarPlusActiveTunnelsCollapsed === 'true'
-
-    /** Live forwards are owned by [[SidebarPlusLiveStateService]]; this is the read side. */
-    get activeTunnels (): ActiveTunnel[] {
-        return this.live.activeTunnels
-    }
+    /** Live forwards are rendered by SidebarPlusActiveTunnelsComponent. */
 
     /** Profile clicked in the tree, previewed in the bottom panel. */
     previewProfile: PartialProfile<Profile>|null = null
@@ -1128,25 +1105,8 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     /**
      * Keeps session group headers attached to their category even when the
-     * `sessionGroups` array is rebuilt by `recomputeSessionGroups()`. Without
-     * this the outer `*ngFor` would tear down and recreate every group (and all
-     * its session rows) whenever the array reference changed — the very thing
-     * the cached getter exists to avoid.
+     * `sessionGroups` array is rebuilt — see SidebarPlusActiveSessionsComponent.
      */
-    trackGroup (_: number, group: SessionGroup): string {
-        return group.category
-    }
-
-    /**
-     * Keeps session rows attached to their tab even when the filtered array is
-     * rebuilt. The identifier is the tab object, which is unique per session —
-     * a return type that narrows once resulted from `*ngFor` receiving
-     * SSH-only rows, but the list now mixes terminal kinds.
-     */
-    trackSession (_: number, session: ActiveSession): BaseTabComponent {
-        return session.tab
-    }
-
     selectWorkspace (id: string): void {
         this.workspaceStore.select(id)
         this.showHiddenPanel = false
@@ -1466,21 +1426,13 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
      * template on every change detection pass, which is fine — each is a
      * property lookup, not the method call of piège #54.
      */
-    get showActiveSessions (): boolean {
-        return (this.config.store.sidebarPlus?.showActiveSessions ?? true) && hostSupports('ssh-tab')
-    }
-
     /**
-     * No `hostSupports(...)` gate, unlike its neighbours: a relaunch is a
-     * generic profile action (SSH, local, whatever a provider offers), not
-     * tied to the SSH tab or the SFTP panel the other blocks depend on.
+     * No `hostSupports(...)` gate, unlike the blocks tied to the SSH tab: a
+     * relaunch is a generic profile action (SSH, local, whatever a provider
+     * offers).
      */
     get showRecentProfiles (): boolean {
         return this.config.store.sidebarPlus?.showRecentProfiles ?? true
-    }
-
-    get showTunnels (): boolean {
-        return (this.config.store.sidebarPlus?.showTunnels ?? true) && hostSupports('ssh-tab')
     }
 
     get showSftp (): boolean {
@@ -1895,22 +1847,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     ////// LIVE STATE DELEGATES //////
-    sessionDotClass (session: ActiveSession): string {
-        return this.live.sessionDotClass(session)
-    }
-
-    sessionTooltip (session: ActiveSession): string {
-        return this.live.sessionTooltip(session)
-    }
-
-    onSessionHover (session: ActiveSession, hovering: boolean): void {
-        this.live.onSessionHover(session, hovering)
-    }
-
-    sessionUptime (session: ActiveSession): string {
-        return this.live.sessionUptime(session)
-    }
-
     /** Whether this configured tunnel is one Tabby currently has mounted — the only kind whose deletion is withheld. */
     isTunnelLive (forward: ForwardedPortConfig, profileId: string|undefined): boolean {
         return this.live.isTunnelLive(forward, profileId)
@@ -1941,34 +1877,6 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private tabStateChanged (): void {
         this.previewProfile = null
         this.cdr.markForCheck()
-    }
-
-    openTunnelUrl (tunnel: ActiveTunnel, event: MouseEvent): void {
-        event.preventDefault()
-        event.stopPropagation()
-        if (tunnel.url) {
-            this.platform.openExternal(tunnel.url)
-        }
-    }
-
-    /** Which tunnel row has its technical details unfolded, by index — clicking a row toggles it. */
-    expandedTunnelIndex: number|null = null
-
-    toggleTunnelDetails (index: number, event: MouseEvent): void {
-        event.preventDefault()
-        this.expandedTunnelIndex = this.expandedTunnelIndex === index ? null : index
-    }
-
-    toggleActiveTunnels (): void {
-        this.activeTunnelsCollapsed = !this.activeTunnelsCollapsed
-        window.localStorage.sidebarPlusActiveTunnelsCollapsed = this.activeTunnelsCollapsed
-    }
-
-    /** stopPropagation, not just preventDefault: the row itself is a click target now (it folds the details open), and without this the button did both. */
-    focusTunnelSession (tunnel: ActiveTunnel, event: MouseEvent): void {
-        event.preventDefault()
-        event.stopPropagation()
-        focusTab(this.app, tunnel.tab)
     }
 
     /**
@@ -2037,17 +1945,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         await modal.result.catch(() => null)
     }
 
-    toggleActiveSessions (): void {
-        this.activeSessionsCollapsed = !this.activeSessionsCollapsed
-        window.localStorage.sidebarPlusActiveSessionsCollapsed = this.activeSessionsCollapsed
-    }
-
-    focusSession (session: ActiveSession, event?: MouseEvent): void {
-        event?.preventDefault()
-        focusTab(this.app, session.tab)
-    }
-
-    /** Jumps to the session *and* swaps the sidebar to its SFTP view — the panel follows the focused tab, so the order matters. */
+    /**
+     * Jumps to the session *and* swaps the sidebar to its SFTP view — the panel follows the focused tab, so the order matters.
+     */
     openSessionSftp (session: ActiveSession, event: MouseEvent): void {
         event.preventDefault()
         event.stopPropagation()

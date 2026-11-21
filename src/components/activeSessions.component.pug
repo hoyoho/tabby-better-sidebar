@@ -1,0 +1,50 @@
+//- Hidden outright when nothing is connected rather than shown empty: a
+//- permanently visible "aucune session" header would cost a line of the
+//- tree for no information. Stays visible in SFTP mode too — an open
+//- session is a fact of the app, not something the current sidebar tab
+//- should hide.
+.active-sessions(*ngIf='showActiveSessions && visibleActiveSessions.length')
+    a.active-sessions-header((click)='toggleActiveSessions()', href='#')
+        .fa.fa-fw.fas.me-1(
+            [class.fa-chevron-down]='!activeSessionsCollapsed',
+            [class.fa-chevron-right]='activeSessionsCollapsed'
+        )
+        span.me-auto {{ 'Active sessions' | translate }}
+        span.active-sessions-count {{ visibleActiveSessions.length }}
+    //- The list scrolls past four rows (see the SCSS): the header has to
+    //- stay put, so the cap goes on this inner wrapper, not on the section.
+    .active-sessions-list(*ngIf='!activeSessionsCollapsed')
+        //- Rows can be SSH and local/serial/telnet alike (WSL, Git Bash,
+        //- ...), so a long mixed list is grouped by connection kind. A list
+        //- holding a single kind gets no headers.
+        .session-group(*ngFor='let group of sessionGroups; trackBy: trackGroup')
+            .session-group-header(*ngIf='sessionGroups.length > 1')
+                span.me-auto {{ group.label }}
+                span.session-group-count {{ group.sessions.length }}
+            //- The SFTP shortcut is a div inside .actions, not a nested <a>:
+            //- the row itself is an <a>, and an anchor inside an anchor is
+            //- invalid HTML that the parser silently un-nests.
+            a.active-session(
+                *ngFor='let session of group.sessions; trackBy: trackSession',
+                [class.focused]='session.focused',
+                (click)='focusSession(session, $event)',
+                (mouseenter)='onSessionHover(session, true)',
+                (mouseleave)='onSessionHover(session, false)',
+                [title]='sessionTooltip(session)',
+                href='#'
+            )
+                span.status-dot.ms-1([ngClass]='sessionDotClass(session)')
+                .fw-20
+                    profile-icon.ms-1([icon]='session.icon', [color]='session.color')
+                span.ms-2.me-auto.no-wrap {{ session.name }}
+                span.session-uptime.no-wrap(*ngIf='!session.transferCount') {{ sessionUptime(session) }}
+                span.session-transfer.no-wrap(*ngIf='session.transferCount') {{ session.transferLabel }}
+                .actions
+                    //- local/serial/telnet tabs have no SFTP subsystem to
+                    //- open; only SSH sessions get the shortcut.
+                    .action(
+                        *ngIf='session.isSSH',
+                        (click)='openSftpFor(session, $event)',
+                        [title]="'Open the SFTP of this session' | translate"
+                    )
+                        .fa.fa-fw.fas.fa-folder-open

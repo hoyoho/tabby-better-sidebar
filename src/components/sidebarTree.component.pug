@@ -20,69 +20,8 @@
             .fa.fa-fw.fas.fa-folder-open.me-1
             span SFTP
 
-    //- Hidden outright when nothing is connected rather than shown empty: a
-    //- permanently visible "aucune session" header would cost a line of the
-    //- tree for no information. Stays visible in SFTP mode too — an open
-    //- session is a fact of the app, not something the current sidebar tab
-    //- should hide (same reasoning as its own SFTP-mode independence, see
-    //- ROADMAP #sessions-actives).
-    //-
-    //- Placed *before* <sidebar-plus-sftp>, not after: the panel is
-    //- `flex-grow-1` in this flex column, so anything following it gets pushed
-    //- to the very bottom of the sidebar in SFTP mode. The section is meant to
-    //- sit at the top in both tabs.
-    .active-sessions(*ngIf='showActiveSessions && visibleActiveSessions.length')
-        a.active-sessions-header((click)='toggleActiveSessions()', href='#')
-            .fa.fa-fw.fas.me-1(
-                [class.fa-chevron-down]='!activeSessionsCollapsed',
-                [class.fa-chevron-right]='activeSessionsCollapsed'
-            )
-            span.me-auto {{ 'Active sessions' | translate }}
-            span.active-sessions-count {{ visibleActiveSessions.length }}
-        //- The list scrolls past four rows (see the SCSS): the header has to
-        //- stay put, so the cap goes on this inner wrapper, not on the section.
-        .active-sessions-list(*ngIf='!activeSessionsCollapsed')
-            //- Rows can now be SSH and local/serial/telnet alike (WSL, Git
-            //- Bash, ...), so a long mixed list is grouped by connection kind —
-            //- see sessionGroups / sessionCategoryLabel. A list holding a single
-            //- kind gets no headers: subdivision of one column is noise.
-            .session-group(*ngFor='let group of sessionGroups; trackBy: trackGroup')
-                .session-group-header(*ngIf='sessionGroups.length > 1')
-                    span.me-auto {{ group.label }}
-                    span.session-group-count {{ group.sessions.length }}
-                //- The SFTP shortcut is a div inside .actions, not a nested <a>:
-                //- the row itself is an <a>, and an anchor inside an anchor is
-                //- invalid HTML that the parser silently un-nests. Same shape as
-                //- the profile rows' own .actions block below.
-                a.active-session(
-                    *ngFor='let session of group.sessions; trackBy: trackSession',
-                    [class.focused]='session.focused',
-                    (click)='focusSession(session, $event)',
-                    (mouseenter)='onSessionHover(session, true)',
-                    (mouseleave)='onSessionHover(session, false)',
-                    [title]='sessionTooltip(session)',
-                    href='#'
-                )
-                    //- The row's one dot: latency-coloured for SSH when the
-                    //- probe is on, plain "connected" green for the other kinds
-                    //- (see sessionDotClass). It carries no tooltip of its own —
-                    //- the figures are in the row's, which is reachable from
-                    //- anywhere along it.
-                    span.status-dot.ms-1([ngClass]='sessionDotClass(session)')
-                    .fw-20
-                        profile-icon.ms-1([icon]='session.icon', [color]='session.color')
-                    span.ms-2.me-auto.no-wrap {{ session.name }}
-                    span.session-uptime.no-wrap(*ngIf='!session.transferCount') {{ sessionUptime(session) }}
-                    span.session-transfer.no-wrap(*ngIf='session.transferCount') {{ session.transferLabel }}
-                    .actions
-                        //- local/serial/telnet tabs have no SFTP subsystem to
-                        //- open; only SSH sessions get the shortcut.
-                        .action(
-                            *ngIf='session.isSSH',
-                            (click)='openSessionSftp(session, $event)',
-                            [title]="'Open the SFTP of this session' | translate"
-                        )
-                            .fa.fa-fw.fas.fa-folder-open
+    //- Active sessions: hidden outright when nothing is connected rather than shown empty.
+    sidebar-plus-active-sessions((openSftp)="openSessionSftp($event.session, $event.event)")
 
     //- Réengagement rapide sur les 5 derniers profils lancés, tous types
     //- confondus, jamais cloisonné par workspace — un lancement est un fait de
@@ -112,64 +51,8 @@
                     profile-icon.ms-1([icon]='profile.icon', [color]='profile.color')
                 span.ms-2.no-wrap {{ profile.name }}
 
-    //- Mirrors Tabby's own forwarding state, never drives it: the roadmap frames
-    //- this chantier as a "surcouche visuelle" over the native engine. Sits
-    //- under the sessions it belongs to rather than at the very bottom of the
-    //- sidebar as first sketched — the tree below is height-constrained, and a
-    //- second live-state block reads better next to the first. Unlike the
-    //- sessions block above, this one is hidden in SFTP mode: the user asked
-    //- for it explicitly (2026-07-30), the SFTP tab having no use for the
-    //- forwarding state.
-    .active-tunnels(*ngIf='showTunnels && !sftpMode && activeTunnels.length')
-        a.active-sessions-header((click)='toggleActiveTunnels()', href='#')
-            .fa.fa-fw.fas.me-1(
-                [class.fa-chevron-down]='!activeTunnelsCollapsed',
-                [class.fa-chevron-right]='activeTunnelsCollapsed'
-            )
-            span.me-auto {{ 'Active tunnels' | translate }}
-            span.active-sessions-count {{ activeTunnels.length }}
-        div(*ngIf='!activeTunnelsCollapsed')
-            //- The row shows the description the user gave the tunnel; the
-            //- technical form is one click away rather than in the way. Action
-            //- buttons are divs, never nested <a> — the parser un-nests those
-            //- silently and breaks the row (piège #38).
-            ng-container(*ngFor='let tunnel of activeTunnels; let i = index')
-                //- Three states, told apart by the row style rather than by
-                //- presence: `waiting` is a cut session's tunnel kept visible
-                //- while a reconnection is possible, `lost` one the revival did
-                //- not bring back. The tooltip carries the explanation.
-                a.active-tunnel(
-                    (click)='toggleTunnelDetails(i, $event)',
-                    [class.tunnel-waiting]='tunnel.state === "waiting"',
-                    [class.tunnel-lost]='tunnel.state === "lost"',
-                    [title]='tunnel.tooltip',
-                    href='#'
-                )
-                    .fa.fa-fw.fas.ms-1.tunnel-icon(
-                        [class.fa-link]='tunnel.state === "live"',
-                        [class.fa-rotate]='tunnel.state === "waiting"',
-                        [class.fa-link-slash]='tunnel.state === "lost"'
-                    )
-                    span.ms-2.me-auto.no-wrap {{ tunnel.label }}
-                    span.tunnel-state(*ngIf='tunnel.state === "waiting"') {{ 'resuming…' | translate }}
-                    span.tunnel-state(*ngIf='tunnel.state === "lost"') {{ 'not restored' | translate }}
-                    span.tunnel-session.no-wrap {{ tunnel.sessionName }}
-                    .actions
-                        .action(
-                            *ngIf='tunnel.url',
-                            (click)='openTunnelUrl(tunnel, $event)',
-                            [title]="'Open {url} in the browser' | translate:{ url: tunnel.url }"
-                        )
-                            .fa.fa-fw.fas.fa-arrow-up-right-from-square
-                        .action(
-                            (click)='focusTunnelSession(tunnel, $event)',
-                            [title]="'Go to the session' | translate"
-                        )
-                            .fa.fa-fw.fas.fa-terminal
-                //- Session name stays on the row itself, so the unfolded part
-                //- only adds what the row cannot show: the technical form.
-                .tunnel-details(*ngIf='expandedTunnelIndex === i')
-                    .no-wrap {{ tunnel.detail }}
+    //- Live port forwards mirrored from Tabby; hidden while the SFTP view is showing.
+    sidebar-plus-active-tunnels([sftpMode]="sftpMode")
 
     //- [hidden] and not *ngIf for the *mode* toggle: destroying this component
     //- would destroy its cached SFTP panels too, and rebuilding one opens a
