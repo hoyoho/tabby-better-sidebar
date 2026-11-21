@@ -49,6 +49,7 @@ import { clampInViewport } from '../viewport'
 import { SidebarResizeController } from '../sidebarResize'
 import { CollapsableProfileGroup, groupIdFromContainerId, intoCollapsable, isSelfOrDescendant, isSyntheticGroupId, moveSelectionWithinArray, parentGroupIdFromGroupContainerId, renameOrderKey, sortGroupIdsByDepthDesc } from '../sidebarTreeModel'
 import { ActiveSession, ActiveTunnel, ProfileBackedTab, SessionGroup, SidebarPlusLiveStateService } from '../liveState.service'
+import { SidebarPlusWorkspaceStore } from '../workspaceStore.service'
 
 @Component({
     selector: 'sidebar-plus-tree',
@@ -82,10 +83,22 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     private hotkeySubscription: Subscription|null = null
 
     ////// WORKSPACES //////
-    workspaces: SidebarWorkspace[] = []
     // Per-machine UI state, not synced config: switching workspaces is not
-    // something that should dirty config.yaml on every click.
-    activeWorkspaceId = window.localStorage.sidebarPlusActiveWorkspace ?? 'all'
+    // something that should dirty config.yaml on every click. The active id
+    // and the arrays live in the workspace store; assigning the id here is for
+    // internal reconciliation and never writes localStorage (select() does).
+    get workspaces (): SidebarWorkspace[] {
+        return this.workspaceStore.workspaces
+    }
+
+    get activeWorkspaceId (): string {
+        return this.workspaceStore.activeWorkspaceId
+    }
+
+    set activeWorkspaceId (id: string) {
+        this.workspaceStore.activeWorkspaceId = id
+    }
+
     contextMenuWorkspace: SidebarWorkspace|null = null
     newWorkspaceName = ''
     renameWorkspaceValue = ''
@@ -370,6 +383,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         private i18n: SidebarPlusI18nService,
         private elementRef: ElementRef<HTMLElement>,
         private live: SidebarPlusLiveStateService,
+        private workspaceStore: SidebarPlusWorkspaceStore,
     ) { }
 
     /**
@@ -736,17 +750,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return false
         }
 
-        this.workspaces = workspaces
-        this.activeWorkspaceId = activeWorkspaceId
-        // Persisted only while the workspaces block is on. With it off, the
-        // active workspace is forced to "Tous" for display, and writing that
-        // here would erase the user's real selection — a switch must never
-        // overwrite a choice it merely stops showing. The one case that still
-        // has to be written is a workspace that no longer exists, handled above
-        // by the same fallback and legitimately persistent.
-        if (this.showWorkspaces) {
-            window.localStorage.sidebarPlusActiveWorkspace = activeWorkspaceId
-        }
+        this.workspaceStore.commit(workspaces, activeWorkspaceId, this.showWorkspaces)
         this.rawGroupsSnapshot = rawGroupsSnapshot
         // The snippet service walks a profile up to the root and has no
         // snapshot of its own — see `useGroups()` for why it is handed one
@@ -1119,10 +1123,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
 
     ////// WORKSPACES //////
     get activeWorkspace (): SidebarWorkspace|null {
-        if (this.activeWorkspaceId === 'all') {
-            return null
-        }
-        return this.workspaces.find(w => w.id === this.activeWorkspaceId) ?? null
+        return this.workspaceStore.activeWorkspace
     }
 
     /**
@@ -1147,8 +1148,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     selectWorkspace (id: string): void {
-        this.activeWorkspaceId = id
-        window.localStorage.sidebarPlusActiveWorkspace = id
+        this.workspaceStore.select(id)
         this.showHiddenPanel = false
         this.closeContextMenu()
         // Picking a workspace is the switcher's terminal action — unlike the
@@ -1289,23 +1289,9 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (!name) {
             return
         }
-        this.config.store.sidebarPlus ??= {}
-        const workspaces: SidebarWorkspace[] = this.config.store.sidebarPlus.workspaces ?? []
-        const id = `ws-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-        workspaces.push({
-            id,
-            name,
-            hiddenProfileIds: [],
-            hiddenGroupIds: [],
-            favorites: [],
-            favoriteGroups: [],
-            groupOrder: {},
-            profileOrder: {},
-        })
-        this.config.store.sidebarPlus.workspaces = workspaces
-        await this.config.save()
+        const workspace = await this.workspaceStore.create(name)
         this.closeContextMenu()
-        this.selectWorkspace(id)
+        this.selectWorkspace(workspace.id)
     }
 
     /**
@@ -1353,9 +1339,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (payload.workspace.color !== undefined) {
             created.color = payload.workspace.color
         }
-        workspaces.push(created)
-        this.config.store.sidebarPlus.workspaces = workspaces
-        await this.config.save()
+        await this.workspaceStore.add(created)
         this.closeContextMenu()
         await this.refreshTree()
         this.notices.notice(this.i18n.t('Workspace "{name}" imported.', { name }))
@@ -1372,14 +1356,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
         if (!name || !this.contextMenuWorkspace) {
             return
         }
-        this.config.store.sidebarPlus ??= {}
-        const workspaces: SidebarWorkspace[] = this.config.store.sidebarPlus.workspaces ?? []
-        const target = workspaces.find(w => w.id === this.contextMenuWorkspace!.id)
-        if (target) {
-            target.name = name
-        }
-        this.config.store.sidebarPlus.workspaces = workspaces
-        await this.config.save()
+        await this.workspaceStore.rename(this.contextMenuWorkspace.id, name)
         this.closeContextMenu()
     }
 
@@ -1393,10 +1370,7 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return
         }
         const id = this.contextMenuWorkspace.id
-        this.config.store.sidebarPlus ??= {}
-        const workspaces: SidebarWorkspace[] = (this.config.store.sidebarPlus.workspaces ?? []).filter(w => w.id !== id)
-        this.config.store.sidebarPlus.workspaces = workspaces
-        await this.config.save()
+        await this.workspaceStore.delete(id)
         this.closeContextMenu()
         if (this.activeWorkspaceId === id) {
             this.selectWorkspace('all')
@@ -1432,19 +1406,12 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
             return
         }
         if (this.contextMenuProfile?.id) {
-            if (!workspace.hiddenProfileIds.includes(this.contextMenuProfile.id)) {
-                workspace.hiddenProfileIds.push(this.contextMenuProfile.id)
-            }
+            await this.workspaceStore.hideProfile(this.contextMenuProfile.id)
         } else if (this.contextMenuGroup) {
-            if (!workspace.hiddenGroupIds.includes(this.contextMenuGroup.id)) {
-                workspace.hiddenGroupIds.push(this.contextMenuGroup.id)
-            }
+            await this.workspaceStore.hideGroup(this.contextMenuGroup.id)
         } else {
             return
         }
-        this.config.store.sidebarPlus ??= {}
-        this.config.store.sidebarPlus.workspaces = this.workspaces
-        await this.config.save()
         this.closeContextMenu()
     }
 
@@ -1473,31 +1440,14 @@ export class SidebarPlusTreeComponent implements OnInit, OnDestroy, AfterViewChe
     }
 
     async restoreGroupInWorkspace (group: PartialProfileGroup<ProfileGroup>): Promise<void> {
-        const workspace = this.activeWorkspace
-        if (!workspace) {
-            return
-        }
-        const index = workspace.hiddenGroupIds.indexOf(group.id)
-        if (index !== -1) {
-            workspace.hiddenGroupIds.splice(index, 1)
-        }
-        this.config.store.sidebarPlus ??= {}
-        this.config.store.sidebarPlus.workspaces = this.workspaces
-        await this.config.save()
+        await this.workspaceStore.restoreGroup(group.id)
     }
 
     async restoreProfileInWorkspace (profile: PartialProfile<Profile>): Promise<void> {
-        const workspace = this.activeWorkspace
-        if (!workspace || !profile.id) {
+        if (!profile.id) {
             return
         }
-        const index = workspace.hiddenProfileIds.indexOf(profile.id)
-        if (index !== -1) {
-            workspace.hiddenProfileIds.splice(index, 1)
-        }
-        this.config.store.sidebarPlus ??= {}
-        this.config.store.sidebarPlus.workspaces = this.workspaces
-        await this.config.save()
+        await this.workspaceStore.restoreProfile(profile.id)
     }
 
     ////// PER-BLOCK SWITCHES //////
